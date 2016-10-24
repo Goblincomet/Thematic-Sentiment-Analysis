@@ -4,6 +4,23 @@ import json
 import nltk
 import unicodedata
 
+## NOTES:
+##	-> AlchemyLanguage:
+##		- Concept tagging: can identify non explicitly mentioned concepts from input, higher level than keyword extraction 	
+##			and would allow us to find more general themes across many articles
+##		- Emotion Analysis: If we can target phrases, entities, or keywords from a sentence, can tag them with emotions like
+##			anger, disgust, fear, joy, and sadness.  In order for this to be useful, each emotion would need known opposites
+##		- (Typed?) Relations: extracting relations would give us the ability to identify more complex themes such as a bill 
+##			trying to be passed through Congress, and perform our sentiment analysis comparison on that as well. Look into this.
+##		- Sentiment Analysis:  5 levels of targetted sentiment analysis is possible:
+##			* Document level: (should not use, since we are doing analysis on the sentence level)
+##			* entity level: Has promise, may be what we are looking for
+##			* quotation level: Probably literal quotations, possibly useful if one quote comes up in many articles
+##			* directional level: Not sure what exactly this is, or its usefulness
+##			* keyword level: Maybe too low level? Worst case senario, we use this level. 
+##		- Combined calls: can probably use this to minimize the number of API calls we make, keeping it at least to the document level
+##			* UPDATE: Would not save us API calls, would just potentially save us time and make data easier to organize
+
 
 punct_arr = ['.', ':', '!', '?', ';'] ## this array denotes sentence boundary marking punctuation characters
 
