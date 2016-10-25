@@ -3,6 +3,7 @@ import os, wxversion
 import json
 import nltk
 import unicodedata
+from watson_developer_cloud import AlchemyLanguageV1
 
 ## NOTES:
 ##	-> AlchemyLanguage:
@@ -22,7 +23,19 @@ import unicodedata
 ##			* UPDATE: Would not save us API calls, would just potentially save us time and make data easier to organize
 
 
+## Dependency Notes:
+## -> need watson developer cloud: run command '$ sudo pip install --upgrade watson-developer-cloud'
+## -> API key: 
+##{
+##  "url": "https://gateway-a.watsonplatform.net/calls",
+##  "note": "It may take up to 5 minutes for this key to become active",
+##  "apikey": "d0d23b0df6ff757a6546557f8a7076f0c83f3b7d"
+##}
+
+
+
 punct_arr = ['.', ':', '!', '?', ';'] ## this array denotes sentence boundary marking punctuation characters
+## alchemy_language = AlchemyLanguageV1(api_key="d0d23b0df6ff757a6546557f8a7076f0c83f3b7d")
 
 
 class Sentence:
@@ -80,6 +93,15 @@ def fix_token_arr(token_arr):
 			corrected_token_arr.append(curr_token)
 	return corrected_token_arr
 
+def call_alchemy(curr_sentence):
+	print curr_sentence
+	# make alchemyAPI call here, insert data returned into Sentence class fields
+	# construct api call based on data from sentence
+	# combined_operations = ['entity', 'keyword', 'concept', 'doc-emotion']
+	# print(json.dumps(alchemy_language.combined(text=curr_sentence, extract=combined_operations), indent=2))
+	# Get sentiment and emotion information results for detected entities/keywords:
+	# print(json.dumps(alchemy_language.entities(url=url, sentiment=True, emotion=True), indent=2))
+
 def perform_article_theme_extraction(curr_article_data):
 	curr_article_data_ascii = unicodedata.normalize('NFKD', curr_article_data).encode('ascii', 'ignore')
 	token_arr = nltk.word_tokenize(curr_article_data_ascii)
@@ -92,7 +114,7 @@ def perform_article_theme_extraction(curr_article_data):
 		if curr_token in punct_arr and not sent_start_pos == curr_pos:
 			sentence_arr = corrected_token_arr[sent_start_pos:curr_pos+1]
 			curr_sentence = Sentence(sentence_elt, sentence_arr, sent_start_pos, curr_pos+1)
-			print curr_sentence
+			call_alchemy(curr_sentence)
 			all_sentence_arr.append(curr_sentence)
 			sent_start_pos = curr_pos +1
 			sentence_elt+=1
