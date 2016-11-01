@@ -20,12 +20,12 @@ topic.
 We have two major objectives for our project:
 
 1. Extract themes from articles
-* Weight each theme by significance and/or prevalence in the article
-* Categorize each extracted theme as being positive, negative, or neutral
+	* Weight each theme by significance and/or prevalence in the article
+	* Categorize each extracted theme as being positive, negative, or neutral
 
 2. Create links between articles that share common themes
-* Quantify the links by the weight of the shared themes in both articles
-* Categorize the link as being either positive or negative
+	* Quantify the links by the weight of the shared themes in both articles
+	* Categorize the link as being either positive or negative
 
 The uniquely defining feature of this project is the use of themes to both relate and define
 the relation between news articles. This is beneficial to the users (the Opinionated project)
