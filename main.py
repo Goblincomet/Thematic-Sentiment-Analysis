@@ -35,7 +35,7 @@ from watson_developer_cloud import AlchemyLanguageV1
 
 
 punct_arr = ['.', ':', '!', '?', ';'] ## this array denotes sentence boundary marking punctuation characters
-## alchemy_language = AlchemyLanguageV1(api_key="d0d23b0df6ff757a6546557f8a7076f0c83f3b7d")
+alchemy_language = AlchemyLanguageV1(api_key="d0d23b0df6ff757a6546557f8a7076f0c83f3b7d")
 
 
 class Sentence:
@@ -44,6 +44,9 @@ class Sentence:
 		self.sentence_arr = sentence_arr
 		self.start_pos = start_pos
 		self.end_pos = end_pos
+		self.sentence_str = ""
+		for curr_sen_elt in sentence_arr:
+			self.sentence_str += curr_sen_elt + " "
 
 	def __str__(self):
 		return "sentence[" + str(self.sentence_elt) + "], data[" + str(self.sentence_arr) + "]"
@@ -97,12 +100,12 @@ def call_alchemy(curr_sentence):
 	print curr_sentence
 	# make alchemyAPI call here, insert data returned into Sentence class fields
 	# construct api call based on data from sentence
-	# combined_operations = ['entity', 'keyword', 'concept', 'doc-emotion']
-	# print(json.dumps(alchemy_language.combined(text=curr_sentence, extract=combined_operations), indent=2))
+	combined_operations = ['entity', 'keyword', 'concept', 'doc-emotion']
+	#print(json.dumps(alchemy_language.combined(text=curr_sentence.sentence_str, extract=combined_operations), indent=2))
 	# Get sentiment and emotion information results for detected entities/keywords:
-	# print(json.dumps(alchemy_language.entities(url=url, sentiment=True, emotion=True), indent=2))
+	print(json.dumps(alchemy_language.entities(text=curr_sentence.sentence_str, sentiment=True, emotion=True), indent=2))
 
-def perform_article_theme_extraction(curr_article_data):
+def perform_article_theme_extraction(curr_article_data, cntr):
 	curr_article_data_ascii = unicodedata.normalize('NFKD', curr_article_data).encode('ascii', 'ignore')
 	token_arr = nltk.word_tokenize(curr_article_data_ascii)
 	corrected_token_arr = fix_token_arr(token_arr) # some punctuaton is embedded in tokens, must find and correct that
@@ -119,14 +122,21 @@ def perform_article_theme_extraction(curr_article_data):
 			sent_start_pos = curr_pos +1
 			sentence_elt+=1
 		curr_pos +=1
+	return cntr+1
 
 
 def main():
 	all_json_files_dir = get_test_json()
 	print "loaded all test files"
+	cntr = 0
+	#for curr_json_filename in all_json_files_dir:
+	#	curr_json_file = all_json_files_dir[curr_json_filename]
+	#	curr_json_file_data = curr_json_file["Data"]
+	#	print "on article[", cntr, "] article name:", curr_json_filename
+	#	cntr = perform_article_theme_extraction(curr_json_file_data, cntr)
 	test_file = get_single_json_to_play_with(all_json_files_dir)
 	test_file_data = test_file["Data"] # this gives us the actual article text
-	perform_article_theme_extraction(test_file_data)
+	perform_article_theme_extraction(test_file_data, 0)
 
 if __name__ == "__main__":
 	main()
