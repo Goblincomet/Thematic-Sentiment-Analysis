@@ -1,4 +1,4 @@
-# OpinionatedNLPAnalysis
+# Opinionated NLP Analysis
 
 ## Summary ##
 
