@@ -23,6 +23,11 @@ from watson_developer_cloud import AlchemyLanguageV1
 ##			* UPDATE: Would not save us API calls, would just potentially save us time and make data easier to organize
 
 
+## We have two options (as I see it).  Base senteiment analysis on entities or keywords (or both)
+## Entities are more sparse than keywords, but keywords have the danger of being irrelivant
+## Also, could use senteiment or emotion (more meterics) as basis for how we compare themes within and between articles
+##		-> For this, further discussion with the squirrel is necessary
+
 ## Dependency Notes:
 ## -> need watson developer cloud: run command '$ sudo pip install --upgrade watson-developer-cloud'
 ## -> API key: 
@@ -52,12 +57,14 @@ class Sentence:
 		return "sentence[" + str(self.sentence_elt) + "], data[" + str(self.sentence_arr) + "]"
 
 def read_json_from_file(json_filepath):
+	"""Called by get_test_json, returns data from a single json file"""
 	if os.path.isfile(json_filepath):
 		with open(json_filepath) as json_file:
 			data = json.load(json_file)
 			return data
 
 def get_test_json():
+	"""Called by main, returns all json files in a dict with the key being article name and value being the json data for that article"""
 	json_dir_path = "testDocs"
 	all_json_files_dir = {}
 	if os.path.isdir(json_dir_path):
@@ -68,12 +75,14 @@ def get_test_json():
 	return all_json_files_dir
 
 def get_single_json_to_play_with(all_json_files_dir):
+	"""Called by main, just a test function to get one json file from the larger dict"""
 	the_json_filename = ""
 	for json_filename in all_json_files_dir:
 		the_json_filename = json_filename
 	return all_json_files_dir[the_json_filename]
 
 def detect_interior_token_punct(curr_token):
+	"""Called by fix_token_arr, detects any punctuation in the interior of a token, if any exists"""
 	curr_pos = 0
 	for token_elt in curr_token:
 		if token_elt in punct_arr and not curr_pos == 0: # account for actual punctuation case
@@ -85,6 +94,8 @@ def detect_interior_token_punct(curr_token):
 	return False, None, None, None
 
 def fix_token_arr(token_arr):
+	"""Called by perform_article_theme_extraction, just performs larger punctuation tokenization correction to the original 
+	token array"""
 	corrected_token_arr = []
 	for curr_token in token_arr:
 		interior_punct_p, first_token, second_token, punct_token = detect_interior_token_punct(curr_token)
@@ -97,6 +108,7 @@ def fix_token_arr(token_arr):
 	return corrected_token_arr
 
 def call_alchemy(curr_sentence):
+	"""Called by perform_article_theme_extraction, calls AlchemyAPI for data that is TBD"""
 	print curr_sentence
 	# make alchemyAPI call here, insert data returned into Sentence class fields
 	# construct api call based on data from sentence
@@ -106,6 +118,10 @@ def call_alchemy(curr_sentence):
 	print(json.dumps(alchemy_language.entities(text=curr_sentence.sentence_str, sentiment=True, emotion=True), indent=2))
 
 def perform_article_theme_extraction(curr_article_data, cntr):
+	"""Called by main, 
+	Takes in one article to extract themes from and tag those themes with sentiment
+	What exactly theme means is TBD (either entity, or keyword, or both)
+	What exactly sentiment means is TBD (either normal sentiment or potentially emotion)"""
 	curr_article_data_ascii = unicodedata.normalize('NFKD', curr_article_data).encode('ascii', 'ignore')
 	token_arr = nltk.word_tokenize(curr_article_data_ascii)
 	corrected_token_arr = fix_token_arr(token_arr) # some punctuaton is embedded in tokens, must find and correct that
@@ -113,7 +129,7 @@ def perform_article_theme_extraction(curr_article_data, cntr):
 	sent_start_pos = 0
 	curr_pos = 0
 	sentence_elt = 0
-	for curr_token in corrected_token_arr: # first pass, we are chunking the text by sentence
+	for curr_token in corrected_token_arr:
 		if curr_token in punct_arr and not sent_start_pos == curr_pos:
 			sentence_arr = corrected_token_arr[sent_start_pos:curr_pos+1]
 			curr_sentence = Sentence(sentence_elt, sentence_arr, sent_start_pos, curr_pos+1)
@@ -129,7 +145,7 @@ def main():
 	all_json_files_dir = get_test_json()
 	print "loaded all test files"
 	cntr = 0
-	#for curr_json_filename in all_json_files_dir:
+	#for curr_json_filename in all_json_files_dir: # loop to go over all articles and extract article themes and sentiment
 	#	curr_json_file = all_json_files_dir[curr_json_filename]
 	#	curr_json_file_data = curr_json_file["Data"]
 	#	print "on article[", cntr, "] article name:", curr_json_filename
