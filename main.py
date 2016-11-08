@@ -56,6 +56,18 @@ class Sentence:
 	def __str__(self):
 		return "sentence[" + str(self.sentence_elt) + "], data[" + str(self.sentence_arr) + "]"
 
+
+def get_old_alchemy_data():
+	for subdir, dirs, files in os.walk('./'):
+		for curr_file in files:
+			if os.path.isfile(curr_file):
+				filename_list = curr_file.split("_")
+				if len(filename_list) > 0:
+					if filename_list[0] == "AlchemyData":
+						with open(curr_file, 'r') as open_file:
+							curr_json_data = json.load(open_file)
+							print(json.dumps(curr_json_data, indent=2))
+
 def read_json_from_file(json_filepath):
 	"""Called by get_test_json, returns data from a single json file"""
 	if os.path.isfile(json_filepath):
@@ -79,7 +91,7 @@ def get_single_json_to_play_with(all_json_files_dir):
 	the_json_filename = ""
 	for json_filename in all_json_files_dir:
 		the_json_filename = json_filename
-	return all_json_files_dir[the_json_filename]
+	return all_json_files_dir[the_json_filename], the_json_filename
 
 def detect_interior_token_punct(curr_token):
 	"""Called by fix_token_arr, detects any punctuation in the interior of a token, if any exists"""
@@ -107,6 +119,12 @@ def fix_token_arr(token_arr):
 			corrected_token_arr.append(curr_token)
 	return corrected_token_arr
 
+def write_json_to_file(json_data, data_ext_str):
+	json_filepath = "AlchemyData" + data_ext_str + ".txt"
+	with open(json_filepath, 'w') as json_file:
+		json.dump(json_data, json_file)
+
+
 def call_alchemy(curr_sentence):
 	"""Called by perform_article_theme_extraction, calls AlchemyAPI for data that is TBD"""
 	print curr_sentence
@@ -115,9 +133,10 @@ def call_alchemy(curr_sentence):
 	combined_operations = ['entity', 'keyword', 'concept', 'doc-emotion']
 	#print(json.dumps(alchemy_language.combined(text=curr_sentence.sentence_str, extract=combined_operations), indent=2))
 	# Get sentiment and emotion information results for detected entities/keywords:
-	print(json.dumps(alchemy_language.entities(text=curr_sentence.sentence_str, sentiment=True, emotion=True), indent=2))
+	alchemy_json_data = alchemy_language.entities(text=curr_sentence.sentence_str, sentiment=True, emotion=True)
+	return alchemy_json_data
 
-def perform_article_theme_extraction(curr_article_data, cntr):
+def perform_article_theme_extraction(curr_article_data, curr_filename, cntr):
 	"""Called by main, 
 	Takes in one article to extract themes from and tag those themes with sentiment
 	What exactly theme means is TBD (either entity, or keyword, or both)
@@ -126,6 +145,7 @@ def perform_article_theme_extraction(curr_article_data, cntr):
 	token_arr = nltk.word_tokenize(curr_article_data_ascii)
 	corrected_token_arr = fix_token_arr(token_arr) # some punctuaton is embedded in tokens, must find and correct that
 	all_sentence_arr = []
+	alchemy_data = {}
 	sent_start_pos = 0
 	curr_pos = 0
 	sentence_elt = 0
@@ -133,26 +153,30 @@ def perform_article_theme_extraction(curr_article_data, cntr):
 		if curr_token in punct_arr and not sent_start_pos == curr_pos:
 			sentence_arr = corrected_token_arr[sent_start_pos:curr_pos+1]
 			curr_sentence = Sentence(sentence_elt, sentence_arr, sent_start_pos, curr_pos+1)
-			call_alchemy(curr_sentence)
+			curr_alchemy_data = call_alchemy(curr_sentence)
+			curr_alchemy_data["orig sentence"] = sentence_arr
+			alchemy_data["sentence" + str(sentence_elt)] = curr_alchemy_data
 			all_sentence_arr.append(curr_sentence)
 			sent_start_pos = curr_pos +1
 			sentence_elt+=1
 		curr_pos +=1
+	write_json_to_file(alchemy_data, "_" + curr_filename.split('.')[0] + "_EKCD")
 	return cntr+1
 
 
 def main():
 	all_json_files_dir = get_test_json()
+	get_old_alchemy_data()
 	print "loaded all test files"
 	cntr = 0
 	#for curr_json_filename in all_json_files_dir: # loop to go over all articles and extract article themes and sentiment
 	#	curr_json_file = all_json_files_dir[curr_json_filename]
 	#	curr_json_file_data = curr_json_file["Data"]
 	#	print "on article[", cntr, "] article name:", curr_json_filename
-	#	cntr = perform_article_theme_extraction(curr_json_file_data, cntr)
-	test_file = get_single_json_to_play_with(all_json_files_dir)
+	#	cntr = perform_article_theme_extraction(curr_json_file_data, curr_json_filename, cntr)
+	test_file, test_filename = get_single_json_to_play_with(all_json_files_dir)
 	test_file_data = test_file["Data"] # this gives us the actual article text
-	perform_article_theme_extraction(test_file_data, 0)
+	#perform_article_theme_extraction(test_file_data, test_filename, 0)
 
 if __name__ == "__main__":
 	main()
