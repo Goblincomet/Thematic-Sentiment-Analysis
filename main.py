@@ -58,6 +58,8 @@ class Sentence:
 
 
 def get_old_alchemy_data():
+	"""Called by main, gets all the old alchemy data for all previously run and saved articles"""
+	file_data = {}
 	for subdir, dirs, files in os.walk('./'):
 		for curr_file in files:
 			if os.path.isfile(curr_file):
@@ -66,7 +68,8 @@ def get_old_alchemy_data():
 					if filename_list[0] == "AlchemyData":
 						with open(curr_file, 'r') as open_file:
 							curr_json_data = json.load(open_file)
-							print(json.dumps(curr_json_data, indent=2))
+							file_data[filename_list[1]] = curr_json_data
+	return file_data
 
 def read_json_from_file(json_filepath):
 	"""Called by get_test_json, returns data from a single json file"""
@@ -120,6 +123,7 @@ def fix_token_arr(token_arr):
 	return corrected_token_arr
 
 def write_json_to_file(json_data, data_ext_str):
+	"""Called by perform_article_theme_extraction, just writes alchemy data for an article to file"""
 	json_filepath = "AlchemyData" + data_ext_str + ".txt"
 	with open(json_filepath, 'w') as json_file:
 		json.dump(json_data, json_file)
