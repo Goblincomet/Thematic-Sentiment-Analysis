@@ -40,7 +40,7 @@ from watson_developer_cloud import AlchemyLanguageV1
 
 
 punct_arr = ['.', ':', '!', '?', ';'] ## this array denotes sentence boundary marking punctuation characters
-alchemy_language = AlchemyLanguageV1(api_key="d0d23b0df6ff757a6546557f8a7076f0c83f3b7d")
+alchemy_language = None
 
 
 class Sentence:
@@ -169,6 +169,13 @@ def perform_article_theme_extraction(curr_article_data, curr_filename, cntr):
 
 
 def main():
+	## anders AlchemyAPI key: "d0d23b0df6ff757a6546557f8a7076f0c83f3b7d"
+	print sys.argv
+	if len(sys.argv) == 2:
+		alchemy_language = AlchemyLanguageV1(api_key=sys.argv[1])
+	else:
+		print "error: usage.  Please input AlchemyAPI key to use."
+		return
 	all_json_files_dir = get_test_json()
 	get_old_alchemy_data()
 	print "loaded all test files"
