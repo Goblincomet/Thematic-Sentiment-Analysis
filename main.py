@@ -1,5 +1,5 @@
 import sys
-import os, wxversion
+import os
 import json
 import nltk
 import unicodedata
@@ -40,7 +40,6 @@ from watson_developer_cloud import AlchemyLanguageV1
 
 
 punct_arr = ['.', ':', '!', '?', ';'] ## this array denotes sentence boundary marking punctuation characters
-alchemy_language = None
 
 
 class Sentence:
@@ -129,7 +128,7 @@ def write_json_to_file(json_data, data_ext_str):
 		json.dump(json_data, json_file)
 
 
-def call_alchemy(curr_sentence):
+def call_alchemy(curr_sentence, alchemy_language):
 	"""Called by perform_article_theme_extraction, calls AlchemyAPI for data that is TBD"""
 	print curr_sentence
 	# make alchemyAPI call here, insert data returned into Sentence class fields
@@ -140,7 +139,7 @@ def call_alchemy(curr_sentence):
 	alchemy_json_data = alchemy_language.entities(text=curr_sentence.sentence_str, sentiment=True, emotion=True)
 	return alchemy_json_data
 
-def perform_article_theme_extraction(curr_article_data, curr_filename, cntr):
+def perform_article_theme_extraction(curr_article_data, curr_filename, alchemy_language, cntr):
 	"""Called by main, 
 	Takes in one article to extract themes from and tag those themes with sentiment
 	What exactly theme means is TBD (either entity, or keyword, or both)
@@ -157,7 +156,7 @@ def perform_article_theme_extraction(curr_article_data, curr_filename, cntr):
 		if curr_token in punct_arr and not sent_start_pos == curr_pos:
 			sentence_arr = corrected_token_arr[sent_start_pos:curr_pos+1]
 			curr_sentence = Sentence(sentence_elt, sentence_arr, sent_start_pos, curr_pos+1)
-			curr_alchemy_data = call_alchemy(curr_sentence)
+			curr_alchemy_data = call_alchemy(curr_sentence, alchemy_language)
 			curr_alchemy_data["orig sentence"] = sentence_arr
 			alchemy_data["sentence" + str(sentence_elt)] = curr_alchemy_data
 			all_sentence_arr.append(curr_sentence)
@@ -187,7 +186,7 @@ def main():
 	#	cntr = perform_article_theme_extraction(curr_json_file_data, curr_json_filename, cntr)
 	test_file, test_filename = get_single_json_to_play_with(all_json_files_dir)
 	test_file_data = test_file["Data"] # this gives us the actual article text
-	#perform_article_theme_extraction(test_file_data, test_filename, 0)
+	perform_article_theme_extraction(test_file_data, test_filename, alchemy_language, 0)
 
 if __name__ == "__main__":
 	main()
