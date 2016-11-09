@@ -1,0 +1,100 @@
+######################################################################################
+General notes
+
+	-> AlchemyLanguage:
+		- Concept tagging: can identify non explicitly mentioned concepts from input, higher level than keyword extraction 	
+			and would allow us to find more general themes across many articles
+		- Emotion Analysis: If we can target phrases, entities, or keywords from a sentence, can tag them with emotions like
+			anger, disgust, fear, joy, and sadness.  In order for this to be useful, each emotion would need known opposites
+		- (Typed?) Relations: extracting relations would give us the ability to identify more complex themes such as a bill 
+			trying to be passed through Congress, and perform our sentiment analysis comparison on that as well. Look into this.
+		- Sentiment Analysis:  5 levels of targetted sentiment analysis is possible:
+			* Document level: (should not use, since we are doing analysis on the sentence level)
+			* entity level: Has promise, may be what we are looking for
+			* quotation level: Probably literal quotations, possibly useful if one quote comes up in many articles
+			* directional level: Not sure what exactly this is, or its usefulness
+			* keyword level: Maybe too low level? Worst case senario, we use this level. 
+		- Combined calls: can probably use this to minimize the number of API calls we make, keeping it at least to the document level
+			* UPDATE: Would not save us API calls, would just potentially save us time and make data easier to organize
+
+We have two options (as I see it).  Base senteiment analysis on entities or keywords (or both)
+Entities are more sparse than keywords, but keywords have the danger of being irrelivant
+Also, could use senteiment or emotion (more meterics) as basis for how we compare themes within and between articles
+		-> For this, further discussion with the squirrel is necessary
+
+Dependency Notes:
+-> need watson developer cloud: run command '$ sudo pip install --upgrade watson-developer-cloud'
+
+API Key Info:
+	url:			"https://gateway-a.watsonplatform.net/calls"
+	anders key:		"d0d23b0df6ff757a6546557f8a7076f0c83f3b7d"
+	courtney key:	"47c833e639827f3db27ebb8ff3a2bef90e18202e"
+
+######################################################################################
+main.py Output
+
+json file (AlchemyData_<ArticleName>.json) in current directory with structure
+
+[
+	# list over entire article
+	{
+		# data for each sentence
+		"docSentiment": { "type": "neutral" },
+		"sentence": ["A", "new", "Senate", "proposal", "to", ... , "."],
+		"taxonomy": [
+			# list over all taxonomies
+			{
+				# data for each taxonomy
+				"confident": "no",
+				"score": "0.214395",
+				"label": "/law, govt and politics/government"
+			}, ...
+		],
+		"number": 0,
+		"entities": [
+			# list over all entities
+			{
+				# data for each entity
+				"count": "1",
+				"sentiment":
+				{
+					"score": "-0.331475",
+					"type": "negative"
+				},
+				"disambiguated": { # not used },
+				"emotions":
+				{
+					# these 5 emotions always used
+					"anger": "0.345283",
+					"joy": "0.02922",
+					"fear": "0.2754",
+					"sadness": "0.149309",
+					"disgust": "0.328006"
+				},
+				"text": "United States",
+				"relevance": "0.33",
+				"type": "Country"
+			}, ...
+		],
+		"docEmotions": { "anger": "0.345283", ... },
+		"keywords": [
+			# list over all keywords
+			{
+				# data for each keyword
+				"relevance": "0.966307",
+				"text": "new Senate proposal",
+				"emotions": { "anger": "0.345283", ... },
+				"sentiment":
+				{
+					# if sentiment is not neutral, it has a score
+					"score": "-0.331475",
+					"type": "negative"
+				}
+			}, ...
+		]
+	}, ...
+]
+
+to do:
+	add directory structure
+	run for all files
