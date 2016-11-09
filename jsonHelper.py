@@ -44,7 +44,7 @@ def get_single_json_to_play_with(all_json_files_dir):
 
 def write_json_to_file(json_data, data_ext_str):
 	"""Called by perform_article_theme_extraction, just writes alchemy data for an article to file"""
-	with open("AlchemyData" + data_ext_str + ".txt", 'w') as json_file:
+	with open("testData/AlchemyData" + data_ext_str + ".txt", 'w') as json_file:
 		json.dump(json_data, json_file)
 
 ######################################################################################
