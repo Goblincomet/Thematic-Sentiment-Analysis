@@ -51,12 +51,14 @@ if __name__ == "__main__":
 	alchemy_language = AlchemyLanguageV1(api_key=sys.argv[1])
 
 	all_json_files_dir = get_test_json()
-	get_old_alchemy_data()
+	old_alchemy_data = get_old_alchemy_data()
 	# print "loaded all test files"
 
 	# loop to go over all articles and extract article themes and sentiment
 	for i, json_filename in enumerate(all_json_files_dir.keys()):
 		json_file_data = all_json_files_dir[json_filename]["Data"]
+		if json_filename in all_json_files_dir:
+			print "already extracted data for article: ", json_filename
 		#print "on article[", i, "] article name:", json_filename
 		#perform_article_theme_extraction(json_file_data, json_filename, alchemy_language)
 
