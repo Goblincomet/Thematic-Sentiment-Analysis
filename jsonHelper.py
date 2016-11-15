@@ -6,13 +6,20 @@ import os, json
 def get_old_alchemy_data():
 	"""Called by main, gets all the old alchemy data for all previously run and saved articles"""
 	file_data = {}
-	for subdir, dirs, files in os.walk('./'):
+	curr_dirpath = os.getcwd()
+	print curr_dirpath
+	for subdir, dirs, files in os.walk(curr_dirpath + '/testData'):
 		for curr_file in files:
-			if os.path.isfile(curr_file):
+			curr_filepath = curr_dirpath + '/testData/' + curr_file
+			print curr_filepath
+			print os.path.isfile(curr_filepath)
+			if os.path.isfile(curr_filepath):
+				print "on file: ", curr_file
 				if curr_file[:11] == "AlchemyData":
-					with open(curr_file, 'r') as open_file:
+					with open(curr_filepath, 'r') as open_file:
+						print "reading in data from article: " + curr_file[12:].split('.')[0]
 						curr_json_data = json.load(open_file)
-						file_data[filename_list[1]] = curr_json_data
+						file_data[curr_file[12:].split('.')[0]] = curr_json_data
 	return file_data
 
 def read_json_from_file(json_filepath):

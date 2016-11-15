@@ -10,7 +10,7 @@ def fix_punct(article_data):
 		article_data = re.sub('[%s]'%p, p+' ', article_data)
 	return article_data
 
-def parseArticle(article_data):
+def parse_article(article_data):
 	article_data = unicodedata.normalize('NFKD', article_data).encode('ascii', 'ignore')
 	return [(sentence, nltk.word_tokenize(sentence)) for sentence in tokenizer.tokenize(fix_punct(article_data), realign_boundaries=True)]
 

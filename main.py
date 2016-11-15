@@ -1,7 +1,7 @@
 import nltk, sys, json
 
 from watson_developer_cloud import AlchemyLanguageV1
-from parseHelper import parseArticle
+from parseHelper import parse_article
 from jsonHelper import get_old_alchemy_data, get_test_json, get_single_json_to_play_with, write_json_to_file
 
 ######################################################################################
@@ -31,7 +31,7 @@ def perform_article_theme_extraction(article_data, filename, alchemy_language):
 	What exactly theme means is TBD (either entity, or keyword, or both)
 	What exactly sentiment means is TBD (either normal sentiment or potentially emotion)"""
 
-	article_data = parseArticle(article_data)
+	article_data = parse_article(article_data)
 
 	alchemy_data = []
 	for i, sentence in enumerate(article_data):
@@ -51,17 +51,17 @@ if __name__ == "__main__":
 	alchemy_language = AlchemyLanguageV1(api_key=sys.argv[1])
 
 	all_json_files_dir = get_test_json()
-	# get_old_alchemy_data()
+	get_old_alchemy_data()
 	# print "loaded all test files"
 
 	# loop to go over all articles and extract article themes and sentiment
-	# for i, json_filename in enumerate(all_json_files_dir.keys()):
-	#	json_file_data = all_json_files_dir[json_filename]["Data"]
-	#	print "on article[", i, "] article name:", json_filename
-	#	cntr = perform_article_theme_extraction(json_file_data, json_filename, cntr)
+	for i, json_filename in enumerate(all_json_files_dir.keys()):
+		json_file_data = all_json_files_dir[json_filename]["Data"]
+		#print "on article[", i, "] article name:", json_filename
+		#perform_article_theme_extraction(json_file_data, json_filename, alchemy_language)
 
-	test_file, test_filename = get_single_json_to_play_with(all_json_files_dir)
-	test_file_data = test_file["Data"] # this gives us the actual article text
-	perform_article_theme_extraction(test_file_data, test_filename.split('.')[0], alchemy_language)
+	#test_file, test_filename = get_single_json_to_play_with(all_json_files_dir)
+	#test_file_data = test_file["Data"] # this gives us the actual article text
+	#perform_article_theme_extraction(test_file_data, test_filename.split('.')[0], alchemy_language)
 
 ######################################################################################
