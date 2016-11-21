@@ -7,19 +7,16 @@ def get_old_alchemy_data():
 	"""Called by main, gets all the old alchemy data for all previously run and saved articles"""
 	file_data = {}
 	curr_dirpath = os.getcwd()
-	print curr_dirpath
 	for subdir, dirs, files in os.walk(curr_dirpath + '/testData'):
 		for curr_file in files:
 			curr_filepath = curr_dirpath + '/testData/' + curr_file
-			print curr_filepath
-			print os.path.isfile(curr_filepath)
 			if os.path.isfile(curr_filepath):
-				print "on file: ", curr_file
 				if curr_file[:11] == "AlchemyData":
 					with open(curr_filepath, 'r') as open_file:
-						print "reading in data from article: " + curr_file[12:].split('.')[0]
+						curr_data_filename = curr_file[12:].split(".txt")[0]
+						#print "reading in data from article: " + curr_data_filename
 						curr_json_data = json.load(open_file)
-						file_data[curr_file[12:].split('.')[0]] = curr_json_data
+						file_data[curr_data_filename] = curr_json_data
 	return file_data
 
 def read_json_from_file(json_filepath):
@@ -37,7 +34,9 @@ def get_test_json():
 		for curr_file in os.listdir(json_dir_path):
 			curr_json_filepath = json_dir_path + "/" + curr_file
 			curr_json_data = read_json_from_file(curr_json_filepath)
-			all_json_files_dir[curr_file] = curr_json_data
+			curr_filename = curr_file.split(".json")[0]
+			#print "reading data json file: " + curr_filename
+			all_json_files_dir[curr_filename] = curr_json_data
 	return all_json_files_dir
 
 def get_single_json_to_play_with(all_json_files_dir):
