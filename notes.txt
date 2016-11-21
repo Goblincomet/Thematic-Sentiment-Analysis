@@ -24,6 +24,7 @@ Also, could use senteiment or emotion (more meterics) as basis for how we compar
 
 Dependency Notes:
 -> need watson developer cloud: run command '$ sudo pip install --upgrade watson-developer-cloud'
+-> need networkx: run command '$ sudo pip install networkx'
 
 API Key Info:
 	url:			"https://gateway-a.watsonplatform.net/calls"

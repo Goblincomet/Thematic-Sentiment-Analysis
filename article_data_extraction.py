@@ -21,9 +21,11 @@ def get_alchemy_langauge_obj(the_api_key):
 	except WatsonException as err:
 		if str(err) == "Error: invalid-api-key" or str(err) == "Error: invalid-permissions-for-call":
 			return None, 1
+		elif str(err) == "Error: daily-transaction-limit-exceeded":
+			return None, 2
 		else:
 			print "Alchemy error:", err
-			return None, 2
+			return alchemy_language, 3
 	return alchemy_language, 0
 
 
@@ -74,6 +76,6 @@ def perform_article_theme_extraction(article_data, filename, alchemy_language):
 			alchemy_data.append(sentence_data)
 	if can_continue_p:
 		write_json_to_file(alchemy_data, '_'+filename)
-		return True
+		return alchemy_data, True
 	else:
-		return False
+		return alchemy_data, False
