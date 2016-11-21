@@ -59,6 +59,8 @@ if __name__ == "__main__":
 		json_file_data = all_json_files_dir[json_filename]["Data"]
 		if json_filename in all_json_files_dir:
 			print "already extracted data for article: ", json_filename
+		else:
+			print "now extraacting data for article:", json_filename
 		#print "on article[", i, "] article name:", json_filename
 		#perform_article_theme_extraction(json_file_data, json_filename, alchemy_language)
 
