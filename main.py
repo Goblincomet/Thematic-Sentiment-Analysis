@@ -9,7 +9,7 @@ from article_graph_builder import build_article_graph_from_data
 
 def main():
 	## We have a main function instead of just having the code in the main if statement so we can return early in case of error
-	if len(sys.argv) < 3:
+	if len(sys.argv) > 3 or len(sys.argv) < 2:
 		print "error: usage. Please input AlchemyAPI key to use."
 		exit(1)
 	build_graph_p = False
