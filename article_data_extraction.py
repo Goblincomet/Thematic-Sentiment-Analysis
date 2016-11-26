@@ -43,21 +43,26 @@ def call_alchemy(sentence, alchemy_language):
 	# construct api call based on data from sentence
 	success_p = True
 	d = None
+	emotions = []
 	try:
-		#print "beginning Alchemy call"
 		d = alchemy_language.combined(text=sentence, extract=['doc-sentiment', 'doc-emotion', 'entities', 'keywords', 'taxonomy'], sentiment=1)
 		d = {key: d[key] for key in ['docSentiment', 'docEmotions', 'entities', 'keywords', 'taxonomy']}
 		
-		elist = ('|').join([e['text'] for e in d['entities']]+[k['text'] for k in d['keywords']])
-		emotions = alchemy_language.targeted_emotion(text=sentence, targets=elist)['results']
+		elist = ('|').join([e['text'] for e in d['entities']]+[k['text'] for k in d['keywords']]) # this list is sometimes empty when no keywords or entities were found
+		if not (len(d['keywords']) == 0 and len(d['entities']) == 0): # need to check here if theres anything to actually tag with emotions
+			emotions = alchemy_language.targeted_emotion(text=sentence, targets=elist)['results']
+		else:
+			print "NO KEYWORDS AND ENTITIES FOUND"
 	except WatsonException as err:
 		if str(err) == "Error: daily-transaction-limit-exceeded":
+			print "reached daily api call limit"
 			success_p = False
 		else:
+			#print "NO KEYWORDS AND ENTITIES FOUND (reaffirmed as the error)"
 			print "Watson error:", err
 			success_p = False
 	break_this_shit_p = False
-	if success_p:
+	if success_p and len(emotions) > 0:
 		emotions_hash = build_emotions_hash(emotions)
 		for i in range(len(d['entities'])):
 			#print "i for entity is now:", i, ", entity is:", d['entities'][i][u'text'], ", emotion keyword is:", emotions[i][u'text']
@@ -85,7 +90,6 @@ def call_alchemy(sentence, alchemy_language):
 	if break_this_shit_p:
 		print "breaking this shit"
 		exit(1)
-	
 	return d, success_p
 
 def perform_article_theme_extraction(article_data, filename, alchemy_language):
@@ -93,9 +97,7 @@ def perform_article_theme_extraction(article_data, filename, alchemy_language):
 	Takes in one article to extract themes from and tag those themes with sentiment
 	What exactly theme means is TBD (either entity, or keyword, or both)
 	What exactly sentiment means is TBD (either normal sentiment or potentially emotion)"""
-
 	article_data = parse_article(article_data)
-
 	alchemy_data = []
 	can_continue_p = True
 	for i, sentence in enumerate(article_data):

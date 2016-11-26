@@ -4,11 +4,7 @@ from json_helper import get_old_alchemy_data, get_test_json, get_single_json_to_
 from article_data_extraction import perform_article_theme_extraction, get_alchemy_langauge_obj
 from article_graph_builder import build_article_graph_from_data
 
-######################################################################################
-# Main function
-
-def main():
-	## We have a main function instead of just having the code in the main if statement so we can return early in case of error
+def check_command_line_args():
 	if len(sys.argv) > 3 or len(sys.argv) < 2:
 		print "error: usage. Please input AlchemyAPI key to use."
 		exit(1)
@@ -25,7 +21,14 @@ def main():
 			print "Alchemy error: Incorrect API key! (dumbass)"
 		else:
 			print "Alchemy error: out of API calls for the day! (rip)"
-		return
+		exit(1)
+	return alchemy_language, build_graph_p
+
+######################################################################################
+# Main function
+
+def main():
+	alchemy_language, build_graph_p = check_command_line_args()
 
 	all_json_files_dir = get_test_json()
 	old_alchemy_data = get_old_alchemy_data()
