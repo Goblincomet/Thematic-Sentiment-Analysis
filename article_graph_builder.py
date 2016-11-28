@@ -1,6 +1,7 @@
 from __future__ import division
 import networkx as nx
 import json
+import operator
 
 
 class ArticleNode:
@@ -9,6 +10,32 @@ class ArticleNode:
 		self.article_sentence_data = article_sentence_data
 		self.article_entity_data = article_entity_data
 		self.article_keyword_data = article_keyword_data
+		self.sorted_entity_list = []
+		self.total_entities = 0
+		self.sorted_keyword_list = []
+		self.total_keywords = 0
+
+	def get_sorted_entity_list(self):
+		if len(self.sorted_entity_list) == 0:
+			entity_freq_dict = {}
+			for curr_entity, curr_entity_data in self.article_entity_data.iteritems():
+				entity_freq_dict[curr_entity] = len(curr_entity_data["all_entries_list"])
+				self.total_entities+=len(curr_entity_data["all_entries_list"])
+			for sorted_tuple in sorted(entity_freq_dict.items(), key=operator.itemgetter(1)):
+				self.sorted_entity_list.append((sorted_tuple[0], sorted_tuple[1]/self.total_entities))
+			self.sorted_entity_list.reverse()
+		return self.sorted_entity_list
+
+	def get_sorted_keyword_list(self):
+		if len(self.sorted_keyword_list) == 0:
+			keyword_freq_dict = {}
+			for curr_entity, curr_entity_data in self.article_entity_data.iteritems():
+				keyword_freq_dict[curr_entity] = len(curr_entity_data["all_entries_list"])
+				self.total_keywords+=len(curr_entity_data["all_entries_list"])
+			for sorted_tuple in sorted(keyword_freq_dict.items(), key=operator.itemgetter(1)):
+				self.sorted_keyword_list.append((sorted_tuple[0], sorted_tuple[1]/self.total_keywords))
+			self.sorted_keyword_list.reverse()
+		return self.sorted_keyword_list
 
 	def __str__(self):
 		return "article[" + self.article_name + "]"
@@ -44,11 +71,11 @@ def extract_entity_data_for_curr_sentence(curr_sentence_data, all_entities):
 
 def extract_keyword_data_for_curr_sentence(curr_sentence_data, all_keywords, sentence_cntr):
 	"""Called by build_article_node, works the same as extract_entity_data_for_curr_sentence, may discard this at one point"""
-	print "sentence[", sentence_cntr,"] keywords:", len(curr_sentence_data[u'keywords'])
+	#print "sentence[", sentence_cntr,"] keywords:", len(curr_sentence_data[u'keywords'])
 	#print json.dumps(curr_sentence_data[u'keywords'], indent=2)
 	for curr_keyword in curr_sentence_data[u'keywords']: ## NEED TO CONSIDER DISAMBIGUATION HERE AS WELL
 		condenced_keyword_name = str(curr_keyword[u'text'])
-		print "keyword[" + condenced_keyword_name + "]"
+		#print "keyword[" + condenced_keyword_name + "]"
 		if condenced_keyword_name not in all_keywords:
 			all_keywords[condenced_keyword_name] = {}
 			all_keywords[condenced_keyword_name]["combined_emotion"] = {"anger": 0, "joy": 0, "fear": 0, "sadness": 0, "disgust": 0}
@@ -69,12 +96,62 @@ def build_article_node(curr_article_name, curr_article_data):
 		#	print "curr field:", curr_sent_field
 		sentence_cntr+=1
 	aggregate_emotion_entries_into_final_scores(all_entities)
-	curr_article_node = ArticleNode(curr_article_name, curr_article_data, all_entities, all_keywords)
-	
+	return ArticleNode(curr_article_name, curr_article_data, all_entities, all_keywords)
+
+def compare_sorted_lists(list1, list2):
+	"""Called by find_closely_related_nodes"""
+	matches_score = 0
+	mismatches_score = 0
+	num_matches = 0 # currently not used
+	num_mismatches = 0 # currently not used
+	completed_terms = []
+	list1_dict = {curr_tuple[0]: curr_tuple[1] for curr_tuple in list1}
+	list2_dict = {curr_tuple[0]: curr_tuple[1] for curr_tuple in list2}
+	for curr_term_tuple in list1:
+		curr_term = curr_term_tuple[0]
+		curr_term_freq = curr_term_tuple[1]
+		if curr_term in list2_dict:
+			matches_score += (list2_dict[curr_term] + curr_term_freq)
+			num_matches+=1
+		else:
+			num_mismatches+=1
+			mismatches_score += curr_term_freq
+		completed_terms.append(curr_term)
+	for curr_term_tuple in list2:
+		if curr_term_tuple[0] not in completed_terms:
+			num_mismatches+=1
+			mismatches_score+=curr_term_tuple[1]
+	return matches_score/(matches_score+mismatches_score)
+
+
+def find_closely_related_nodes(curr_article_name, curr_article_node, article_graph):
+	"""Called by build_article_graph_from_data"""
+	curr_node_sorted_entities = curr_article_node.get_sorted_entity_list()
+	curr_node_sorted_keywords = curr_article_node.get_sorted_keyword_list()
+	for other_article_name, other_article_data_hash in article_graph.nodes(data=True): # go over all other nodes
+		if other_article_name != curr_article_name:
+			other_article_node = other_article_data_hash['node_data']
+			other_sorted_entities = other_article_node.get_sorted_entity_list() # just work with entities rn
+			other_sorted_keywords = other_article_node.get_sorted_keyword_list()
+			entity_relation_score = compare_sorted_lists(curr_node_sorted_entities, other_sorted_entities)
+			keyword_relation_score = compare_sorted_lists(curr_node_sorted_keywords, other_sorted_keywords)
+			if entity_relation_score > 0: # create entity edge if the two nodes are related through entities
+				#print "article[" + curr_article_name + "] compared to article[" + other_article_name + "] relation score:", entity_relation_score
+				if (curr_article_name, other_article_name) not in article_graph.edges():
+					article_graph.add_edge(curr_article_name, other_article_name)
+				article_graph[curr_article_name][other_article_name]['entity_weight'] = entity_relation_score
+			if keyword_relation_score > 0: # create a keyword edge if the two nodes are related through keywords
+				if (curr_article_name, other_article_name) not in article_graph.edges():
+					article_graph.add_edge(curr_article_name, other_article_name)
+				article_graph[curr_article_name][other_article_name]['keyword_weight'] = keyword_relation_score
 
 def build_article_graph_from_data(all_alchemy_data):
 	article_graph = nx.Graph()
 	for curr_article_name, curr_article_data in all_alchemy_data.iteritems(): # build article nodes and put them in the graph
 		curr_article_node = build_article_node(curr_article_name, curr_article_data)
-		article_graph.add_node(curr_article_node)
+		article_graph.add_node(curr_article_name, node_data=curr_article_node)
+		#print "testing node return:", article_graph.node[curr_article_name]
+	for curr_article_name, curr_article_data_hash in article_graph.nodes(data=True): # add edges between article nodes
+		curr_article_node = curr_article_data_hash['node_data']
+		find_closely_related_nodes(curr_article_name, curr_article_node, article_graph)
 	return article_graph
