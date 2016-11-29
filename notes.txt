@@ -30,6 +30,7 @@ API Key Info:
 	url:			"https://gateway-a.watsonplatform.net/calls"
 	anders key:		"d0d23b0df6ff757a6546557f8a7076f0c83f3b7d"
 	courtney key:	"47c833e639827f3db27ebb8ff3a2bef90e18202e"
+	eryka key:		"1496111dea3dd74c316ab932a75052fdc1e309f4"
 
 ######################################################################################
 main.py Output
