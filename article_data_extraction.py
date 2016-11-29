@@ -44,13 +44,17 @@ def call_alchemy(sentence, alchemy_language):
 	success_p = True
 	d = None
 	emotions = []
+	transactions_used = 0
 	try:
 		d = alchemy_language.combined(text=sentence, extract=['doc-sentiment', 'doc-emotion', 'entities', 'keywords', 'taxonomy'], sentiment=1)
+		transactions_used += int(d['totalTransactions'])
 		d = {key: d[key] for key in ['docSentiment', 'docEmotions', 'entities', 'keywords', 'taxonomy']}
-		
 		elist = ('|').join([e['text'] for e in d['entities']]+[k['text'] for k in d['keywords']]) # this list is sometimes empty when no keywords or entities were found
 		if not (len(d['keywords']) == 0 and len(d['entities']) == 0): # need to check here if theres anything to actually tag with emotions
-			emotions = alchemy_language.targeted_emotion(text=sentence, targets=elist)['results']
+			emotions_full_return = alchemy_language.targeted_emotion(text=sentence, targets=elist)
+			transactions_used += int(emotions_full_return['totalTransactions'])
+			emotions = emotions_full_return['results']
+			#print json.dumps(emotions_full_return, indent=2)
 		else:
 			print "NO KEYWORDS AND ENTITIES FOUND"
 	except WatsonException as err:
@@ -90,7 +94,7 @@ def call_alchemy(sentence, alchemy_language):
 	if break_this_shit_p:
 		print "breaking this shit"
 		exit(1)
-	return d, success_p
+	return d, success_p, transactions_used
 
 def perform_article_theme_extraction(article_data, filename, alchemy_language):
 	"""Called by main, 
@@ -100,16 +104,20 @@ def perform_article_theme_extraction(article_data, filename, alchemy_language):
 	article_data = parse_article(article_data)
 	alchemy_data = []
 	can_continue_p = True
+	print "\tarticle has", len(article_data), "sentences"
+	tot_transactions_used = 0
 	for i, sentence in enumerate(article_data):
-		sentence_data, success_p = call_alchemy(sentence[0], alchemy_language)
+		sentence_data, success_p, transactions_used = call_alchemy(sentence[0], alchemy_language)
 		if not success_p:
 			return alchemy_data, False
 		else:
 			sentence_data['sentence'] = sentence[1]
 			sentence_data['number'] = i
 			alchemy_data.append(sentence_data)
+			tot_transactions_used+=transactions_used
 	if can_continue_p:
 		write_json_to_file(alchemy_data, '_'+filename)
+		print "\tfinished extracting article data, used", tot_transactions_used, "api transactions"
 		return alchemy_data, True
 	else:
 		return alchemy_data, False
