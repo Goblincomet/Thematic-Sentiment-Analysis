@@ -48,7 +48,7 @@ def call_alchemy(sentence, alchemy_language):
 	try:
 		d = alchemy_language.combined(text=sentence, extract=['doc-sentiment', 'doc-emotion', 'entities', 'keywords', 'taxonomy'], sentiment=1)
 		transactions_used += int(d['totalTransactions'])
-		d = {key: d[key] for key in ['docSentiment', 'docEmotions', 'entities', 'keywords', 'taxonomy']}
+		d = {key: d[key] for key in ['docSentiment', 'docEmotions', 'entities', 'keywords', 'taxonomy'] if key in d}
 		elist = ('|').join([e['text'] for e in d['entities']]+[k['text'] for k in d['keywords']]) # this list is sometimes empty when no keywords or entities were found
 		if not (len(d['keywords']) == 0 and len(d['entities']) == 0): # need to check here if theres anything to actually tag with emotions
 			emotions_full_return = alchemy_language.targeted_emotion(text=sentence, targets=elist)
@@ -76,7 +76,7 @@ def call_alchemy(sentence, alchemy_language):
 				d['entities'][i]['emotions'] = emotions_hash[d['entities'][i][u'text']]['emotions']
 			else: ## TODO: this quick fix may need some more looking into 
 				#print "failed to tag entity[", d['entities'][i][u'text'], "] with an emotion, removing it"
-				del d['entities'][i]
+				d['entities'][i] = None
 		for i in range(len(d['keywords'])):
 			#print "len emotions:", len(emotions), ", index to be accessed:", i+len(d['entities']), ", keyword:", d['keywords'][i][u'text']
 			if d['keywords'][i][u'text'] in emotions_hash:
@@ -84,13 +84,15 @@ def call_alchemy(sentence, alchemy_language):
 				d['keywords'][i]['emotions'] = emotions_hash[d['keywords'][i][u'text']]['emotions']
 			else: ## TODO: this quick fix may need some more looking into 
 				#print "failed to tag keyword[", d['keywords'][i][u'text'], "] with an emotion"
-				del d['keywords'][i]
+				d['keywords'][i] = None
 			#if i+len(d['entities']) < len(emotions):
 				#print "emotion keyword[", i+len(d['entities']), "]:", emotions[i+len(d['entities'])][u'text']
 				#print "emotions[i+len(d['entities'])]['emotions']:", emotions[i+len(d['entities'])]['emotions']
 			#	d['keywords'][i]['emotions'] = emotions[i+len(d['entities'])]['emotions']
 			#else:
 			#	break_this_shit_p = True
+		d['entities'] = [d['entities'][i] for i in range(len(d['entities'])) if d['entities'][i] != None]
+		d['keywords'] = [d['keywords'][i] for i in range(len(d['keywords'])) if d['keywords'][i] != None]
 	if break_this_shit_p:
 		print "breaking this shit"
 		exit(1)
