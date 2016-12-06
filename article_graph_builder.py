@@ -99,7 +99,7 @@ def build_article_node(curr_article_name, curr_article_data):
 	return ArticleNode(curr_article_name, curr_article_data, all_entities, all_keywords)
 
 def compare_sorted_lists(list1, list2):
-	"""Called by find_closely_related_nodes"""
+	"""Called by find_closely_related_nodes, this is the function to find similarity between articles, should be reviewed."""
 	matches_score = 0
 	mismatches_score = 0
 	num_matches = 0 # currently not used
@@ -110,18 +110,18 @@ def compare_sorted_lists(list1, list2):
 	for curr_term_tuple in list1:
 		curr_term = curr_term_tuple[0]
 		curr_term_freq = curr_term_tuple[1]
-		if curr_term in list2_dict:
+		if curr_term in list2_dict: # if the term is present in both lists, add their frequencies to the score
 			matches_score += (list2_dict[curr_term] + curr_term_freq)
 			num_matches+=1
-		else:
+		else: # otherwise that frequency counts against the match score
 			num_mismatches+=1
 			mismatches_score += curr_term_freq
 		completed_terms.append(curr_term)
-	for curr_term_tuple in list2:
+	for curr_term_tuple in list2: ## add all terms from the second list not present in the first to the mismatch score
 		if curr_term_tuple[0] not in completed_terms:
 			num_mismatches+=1
 			mismatches_score+=curr_term_tuple[1]
-	return matches_score/(matches_score+mismatches_score)
+	return matches_score/(matches_score+mismatches_score) ## return the percent matches against the overall combined score
 
 
 def find_closely_related_nodes(curr_article_name, curr_article_node, article_graph):
