@@ -55,7 +55,7 @@ def main():
 	else:
 		print "skipping article data extraction and going right to graph construction"
 		article_graph = build_article_graph_from_data(old_alchemy_data)
-		#export_graph_to_neo4j(article_graph)
+		export_graph_to_neo4j(article_graph)
 		
 		#labels = nx.draw_networkx_labels(article_graph, pos=nx.spring_layout(article_graph))
 		#plt.show()
