@@ -1,5 +1,4 @@
 import networkx as nx
-import json
 import re
 
 class Article:
