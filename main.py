@@ -1,4 +1,6 @@
-import sys
+import sys, re
+import matplotlib.pyplot as plt
+import networkx as nx
 
 from json_helper import get_old_alchemy_data, get_test_json, get_single_json_to_play_with
 from article_data_extraction import perform_article_theme_extraction, get_alchemy_langauge_obj
@@ -50,7 +52,12 @@ def main():
 		print "finished all articles!"
 	else:
 		print "skipping article data extraction and going right to graph construction"
-		build_article_graph_from_data(old_alchemy_data)
+		article_graph = build_article_graph_from_data(old_alchemy_data)
+		print "printing article names in main"
+		for n in article_graph.nodes(data=True):
+			print n
+		labels = nx.draw_networkx_labels(article_graph, nx.spring_layout(article_graph))
+		plt.show()
 	#test_file, test_filename = get_single_json_to_play_with(all_json_files_dir)
 	#test_file_data = test_file["Data"] # this gives us the actual article text
 	#perform_article_theme_extraction(test_file_data, test_filename.split('.')[0], alchemy_language)
