@@ -83,9 +83,9 @@ def extract_keyword_data_for_curr_sentence(curr_sentence_data, all_keywords, sen
 		all_keywords[condenced_keyword_name]["all_entries_list"].append(curr_keyword)
 		combine_emotion_for_new_entity(all_keywords, condenced_keyword_name, curr_keyword[u'emotions'])
 
-def build_article_node(curr_article_name, curr_article_data):
+def build_article_node(curr_article_name, curr_article_data, node_cntr):
 	"""Called by build_article_graph_from_data, takes Alchemy data for a single article and builds a node from it"""
-	print "on article:", curr_article_name
+	
 	all_entities = {}
 	all_keywords = {}
 	sentence_cntr = 0
@@ -96,6 +96,10 @@ def build_article_node(curr_article_name, curr_article_data):
 		#	print "curr field:", curr_sent_field
 		sentence_cntr+=1
 	aggregate_emotion_entries_into_final_scores(all_entities)
+	#if node_cntr == 1:
+	#	print "on article:", curr_article_name
+	#	for curr_entity in all_entities:
+	#		print curr_entity
 	return ArticleNode(curr_article_name, curr_article_data, all_entities, all_keywords)
 
 def compare_sorted_lists(list1, list2):
@@ -147,10 +151,11 @@ def find_closely_related_nodes(curr_article_name, curr_article_node, article_gra
 
 def build_article_graph_from_data(all_alchemy_data):
 	article_graph = nx.Graph()
+	node_cntr = 0
 	for curr_article_name, curr_article_data in all_alchemy_data.iteritems(): # build article nodes and put them in the graph
-		curr_article_node = build_article_node(curr_article_name, curr_article_data)
+		curr_article_node = build_article_node(curr_article_name, curr_article_data, node_cntr)
 		article_graph.add_node(curr_article_name, node_data=curr_article_node)
-		#print "testing node return:", article_graph.node[curr_article_name]
+		node_cntr +=1
 	for curr_article_name, curr_article_data_hash in article_graph.nodes(data=True): # add edges between article nodes
 		curr_article_node = curr_article_data_hash['node_data']
 		find_closely_related_nodes(curr_article_name, curr_article_node, article_graph)
