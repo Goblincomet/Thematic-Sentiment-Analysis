@@ -1,7 +1,7 @@
 ######################################################################################
 # Functions defined to parse json article files and write data to json file
 
-import os, json
+import os, json, unicodedata
 
 def get_old_alchemy_data():
 	"""Called by main, gets all the old alchemy data for all previously run and saved articles"""
@@ -16,6 +16,7 @@ def get_old_alchemy_data():
 						curr_data_filename = curr_file[12:].split(".txt")[0]
 						#print "reading in data from article: " + curr_data_filename
 						curr_json_data = json.load(open_file)
+						#curr_data_filename_ascii = unicodedata.normalize('NFKD', curr_data_filename).encode('ascii', 'ignore')
 						file_data[curr_data_filename] = curr_json_data
 	return file_data
 

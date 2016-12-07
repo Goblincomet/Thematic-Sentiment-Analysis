@@ -1,7 +1,5 @@
-from __future__ import division
 import networkx as nx
 import json
-import operator
 import re
 
 class Article:
@@ -66,7 +64,8 @@ def addEdges(graph, articles):
 			a2 = articles[j]
 			e = compareEntities(a1, a2)
 			if e > 0:
-				graph.add_edge(a1, a2,
+				graph.add_edge(re.sub(r'[^A-z0-9 ]', '', a1.name),
+					re.sub(r'[^A-z0-9 ]', '', a2.name),
 					entity_weight=e,
 					sentiment_weight=compareSentiment(a1, a2),
 					emotion_weight=compareEmotions(a1, a2))
@@ -80,8 +79,7 @@ def build_article_graph_from_data(data):
 	addEdges(graph, articles)
 
 	for e in graph.edges(data=True):
-		print e[0].name
-		print e[1].name
+		print e[0], e[1]
 		if 'entity_weight' in e[2]:
 			print 'e', e[2]['entity_weight']
 		if 'sentiment_weight' in e[2]:

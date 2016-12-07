@@ -1,8 +1,12 @@
-import sys
+import sys, re
+import matplotlib.pyplot as plt
+import networkx as nx
+from neo4j.v1 import GraphDatabase, basic_auth
 
 from json_helper import get_old_alchemy_data, get_test_json, get_single_json_to_play_with
 from article_data_extraction import perform_article_theme_extraction, get_alchemy_langauge_obj
 from article_graph_builder import build_article_graph_from_data
+from article_graph_visualization import export_graph_to_neo4j
 
 def check_command_line_args():
 	if len(sys.argv) > 3 or len(sys.argv) < 2:
@@ -50,7 +54,11 @@ def main():
 		print "finished all articles!"
 	else:
 		print "skipping article data extraction and going right to graph construction"
-		build_article_graph_from_data(old_alchemy_data)
+		article_graph = build_article_graph_from_data(old_alchemy_data)
+		#export_graph_to_neo4j(article_graph)
+		
+		#labels = nx.draw_networkx_labels(article_graph, pos=nx.spring_layout(article_graph))
+		#plt.show()
 	#test_file, test_filename = get_single_json_to_play_with(all_json_files_dir)
 	#test_file_data = test_file["Data"] # this gives us the actual article text
 	#perform_article_theme_extraction(test_file_data, test_filename.split('.')[0], alchemy_language)
