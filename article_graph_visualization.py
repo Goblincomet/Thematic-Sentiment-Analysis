@@ -28,12 +28,14 @@ def export_graph_to_neo4j(article_graph):
 	graph = Graph(password="1happydog")
 	tx = graph.begin()
 	graph_node_dict = {}
-	for n in article_graph.nodes(data=True):
-		new_graph_node = make_new_graph_node(n)
-		tx.create(new_graph_node)
-		graph_node_dict[n[0]] = new_graph_node
+	#for n in article_graph.nodes(data=True):
+	#	new_graph_node = make_new_graph_node(n)
+	#	tx.create(new_graph_node)
+	#	graph_node_dict[n[0]] = new_graph_node
 	for e in article_graph.edges(data=True):
 		#print e[0], e[1]
+		if e[0] not in graph_node_dict:
+			new_graph_node = make_new_graph_node(n)
 		g_node1 = graph_node_dict[e[0]]
 		g_node2 = graph_node_dict[e[1]]
 		new_edge = Relationship(g_node1, "KNOWS", g_node2)
