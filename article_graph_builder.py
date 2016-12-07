@@ -15,11 +15,10 @@ class Article:
 			self.addEmotion(sentence['docEmotions'], n)
 
 			for t in sentence['taxonomy']:
-				score = float(t['score'])
 				for l in t['label'].split('/'):
 					if l not in self.taxonomies:
 						self.taxonomies[l] = 0
-					self.taxonomies[l] = max(self.taxonomies[l], score)
+					self.taxonomies[l] = max(self.taxonomies[l], float(t['score']))
 
 			words = sentence['entities']+sentence['keywords']
 			for w in words:
