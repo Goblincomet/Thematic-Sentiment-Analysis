@@ -29,7 +29,7 @@ class ArticleNode:
 	def get_sorted_keyword_list(self):
 		if len(self.sorted_keyword_list) == 0:
 			keyword_freq_dict = {}
-			for curr_entity, curr_entity_data in self.article_entity_data.iteritems():
+			for curr_entity, curr_entity_data in self.article_keyword_data.iteritems():
 				keyword_freq_dict[curr_entity] = len(curr_entity_data["all_entries_list"])
 				self.total_keywords+=len(curr_entity_data["all_entries_list"])
 			for sorted_tuple in sorted(keyword_freq_dict.items(), key=operator.itemgetter(1)):
@@ -159,4 +159,11 @@ def build_article_graph_from_data(all_alchemy_data):
 	for curr_article_name, curr_article_data_hash in article_graph.nodes(data=True): # add edges between article nodes
 		curr_article_node = curr_article_data_hash['node_data']
 		find_closely_related_nodes(curr_article_name, curr_article_node, article_graph)
+	for e in article_graph.edges(data=True):
+		print e[0], e[1],
+		if 'entity_weight' in e[2]:
+			print 'e', e[2]['entity_weight'],
+		if 'keyword_weight' in e[2]:
+			print 'k', e[2]['keyword_weight'],
+		print
 	return article_graph
