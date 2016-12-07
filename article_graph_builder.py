@@ -4,156 +4,89 @@ import json
 import operator
 import re
 
+class Article:
+	def __init__(self, name, data):
+		self.name = name
+		self.entities = {}
+		self.sentiment = 0
+		self.emotions = {'anger': 0, 'joy': 0, 'fear': 0, 'sadness': 0, 'disgust': 0}
 
-class ArticleNode:
-	def __init__(self, article_name, article_sentence_data, article_entity_data, article_keyword_data):
-		self.article_name = article_name
-		self.article_sentence_data = article_sentence_data
-		self.article_entity_data = article_entity_data
-		self.article_keyword_data = article_keyword_data
-		self.sorted_entity_list = []
-		self.total_entities = 0
-		self.sorted_keyword_list = []
-		self.total_keywords = 0
+		n = len(data)
+		for sentence in data:
+			self.addSentiment(sentence['docSentiment'], n)
+			self.addEmotion(sentence['docEmotions'], n)
 
-	def get_sorted_entity_list(self):
-		if len(self.sorted_entity_list) == 0:
-			entity_freq_dict = {}
-			for curr_entity, curr_entity_data in self.article_entity_data.iteritems():
-				entity_freq_dict[curr_entity] = len(curr_entity_data["all_entries_list"])
-				self.total_entities+=len(curr_entity_data["all_entries_list"])
-			for sorted_tuple in sorted(entity_freq_dict.items(), key=operator.itemgetter(1)):
-				self.sorted_entity_list.append((sorted_tuple[0], sorted_tuple[1]/self.total_entities))
-			self.sorted_entity_list.reverse()
-		return self.sorted_entity_list
+			words = sentence['entities']+sentence['keywords']
+			for w in words:
+				self.addEntity(w, n*len(words))
 
-	def get_sorted_keyword_list(self):
-		if len(self.sorted_keyword_list) == 0:
-			keyword_freq_dict = {}
-			for curr_entity, curr_entity_data in self.article_keyword_data.iteritems():
-				keyword_freq_dict[curr_entity] = len(curr_entity_data["all_entries_list"])
-				self.total_keywords+=len(curr_entity_data["all_entries_list"])
-			for sorted_tuple in sorted(keyword_freq_dict.items(), key=operator.itemgetter(1)):
-				self.sorted_keyword_list.append((sorted_tuple[0], sorted_tuple[1]/self.total_keywords))
-			self.sorted_keyword_list.reverse()
-		return self.sorted_keyword_list
+	def addEntity(self, w, n=1):
+		weight = float(w['relevance'])
+		self.addSentiment(w['sentiment'], n, weight)
+		self.addEmotion(w['emotions'], n, weight)
 
-	def __str__(self):
-		return "article[" + self.article_name + "]"
+		text = w['text'].lower()
+		if text not in self.entities:
+			self.entities[text] = 0
+		self.entities[text] = max(self.entities[text], weight)
 
-def combine_emotion_for_new_entity(all_entities, condenced_entity_name, new_emotion_entry):
-	"""Called by extract_entity_data_for_curr_sentence, adds emotion scores to running totals for the current entity/keyword"""
-	for curr_emotion, curr_emotion_str_val in new_emotion_entry.iteritems():
-		curr_emotion_float = float(curr_emotion_str_val)
-		all_entities[condenced_entity_name]["combined_emotion"][str(curr_emotion)] += curr_emotion_float
+	def addSentiment(self, data, n=1, weight=1):
+		if data['type'] != 'neutral':
+			self.sentiment += weight*float(data['score'])/n
 
-def aggregate_emotion_entries_into_final_scores(all_entities):
-	"""Called by build_article_node, finishes aggregation of emotion data for entities and keywords"""
-	for curr_entity_name, curr_entity_data in all_entities.iteritems():
-		curr_entity_combined_emotion = curr_entity_data["combined_emotion"]
-		curr_emotion_divisor = len(curr_entity_data["all_entries_list"])
-		for curr_emotion_name in curr_entity_combined_emotion:
-			curr_entity_combined_emotion[curr_emotion_name] = curr_entity_combined_emotion[curr_emotion_name]/curr_emotion_divisor
-		#print "for entity[" + curr_entity_name + "] freq is", curr_emotion_divisor
+	def addEmotion(self, data, n=1, weight=1):
+		for m in self.emotions:
+			self.emotions[m] += weight*float(data[m])/n
 
-def extract_entity_data_for_curr_sentence(curr_sentence_data, all_entities):
-	"""Called by build_article_node, takes the entity data from the current sentence and starts to aggregate its entity data"""
-	for curr_entity in curr_sentence_data[u'entities']:
-		condenced_entity_name = str(curr_entity[u'text'])
-		if curr_entity[u'type'] == u'Person': # TODO: this is a quick fix to a real disambiguation problem with named person entities
-			entity_name_list = condenced_entity_name.split(' ')
-			condenced_entity_name = entity_name_list[len(entity_name_list)-1]
-		if condenced_entity_name not in all_entities:
-			all_entities[condenced_entity_name] = {}
-			all_entities[condenced_entity_name]["combined_emotion"] = {"anger": 0, "joy": 0, "fear": 0, "sadness": 0, "disgust": 0}
-			all_entities[condenced_entity_name]["all_entries_list"] = []
-		all_entities[condenced_entity_name]["all_entries_list"].append(curr_entity)
-		combine_emotion_for_new_entity(all_entities, condenced_entity_name, curr_entity[u'emotions'])
+def compareEntities(a1, a2):
+	set1 = set(a1.entities)
+	set2 = set(a2.entities)
 
-def extract_keyword_data_for_curr_sentence(curr_sentence_data, all_keywords, sentence_cntr):
-	"""Called by build_article_node, works the same as extract_entity_data_for_curr_sentence, may discard this at one point"""
-	#print "sentence[", sentence_cntr,"] keywords:", len(curr_sentence_data[u'keywords'])
-	#print json.dumps(curr_sentence_data[u'keywords'], indent=2)
-	for curr_keyword in curr_sentence_data[u'keywords']: ## NEED TO CONSIDER DISAMBIGUATION HERE AS WELL
-		condenced_keyword_name = str(curr_keyword[u'text'])
-		#print "keyword[" + condenced_keyword_name + "]"
-		if condenced_keyword_name not in all_keywords:
-			all_keywords[condenced_keyword_name] = {}
-			all_keywords[condenced_keyword_name]["combined_emotion"] = {"anger": 0, "joy": 0, "fear": 0, "sadness": 0, "disgust": 0}
-			all_keywords[condenced_keyword_name]["all_entries_list"] = []
-		all_keywords[condenced_keyword_name]["all_entries_list"].append(curr_keyword)
-		combine_emotion_for_new_entity(all_keywords, condenced_keyword_name, curr_keyword[u'emotions'])
+	matches = set1 & set2
+	misses  = set1 ^ set2
 
-def build_article_node(curr_article_name, curr_article_data):
-	"""Called by build_article_graph_from_data, takes Alchemy data for a single article and builds a node from it"""
-	print "on article:", curr_article_name
-	all_entities = {}
-	all_keywords = {}
-	sentence_cntr = 0
-	for curr_sentence_data in curr_article_data:
-		extract_entity_data_for_curr_sentence(curr_sentence_data, all_entities)
-		extract_keyword_data_for_curr_sentence(curr_sentence_data, all_keywords, sentence_cntr)
-		#for curr_sent_field in curr_sentence_data:
-		#	print "curr field:", curr_sent_field
-		sentence_cntr+=1
-	aggregate_emotion_entries_into_final_scores(all_entities)
-	return ArticleNode(re.sub(r'[^A-z0-9]', '', curr_article_name), curr_article_data, all_entities, all_keywords)
+	matchWeight = sum([a1.entities[t]+1 for t in a1.entities if t in matches])
+	missWeight  = sum([a1.entities[t]+1 for t in a1.entities if t in misses ]) + sum([a2.entities[t]+1 for t in a2.entities if t in misses])
 
-def compare_sorted_lists(list1, list2):
-	# for term, freq in list1:
+	p = 1.0*matchWeight/(1+matchWeight+missWeight)
+	if p > 0.06:
+		return p
+	return 0
 
+def compareSentiment(a1, a2):
+	return abs(a1.sentiment-a2.sentiment)
 
-	# set1 = set([t[0] for t in list1])
-	# set2 = set([t[0] for t in list2])
+def compareEmotions(a1, a2):
+	return max([abs(a1.emotions[e] - a2.emotions[e]) for e in a1.emotions])
 
-	# matches = set1 & set2
-	# misses  = set1 ^ set2
+def addEdges(graph, articles):
+	for i in range(len(articles)):
+		for j in range(i+1, len(articles), 1):
+			a1 = articles[i]
+			a2 = articles[j]
+			e = compareEntities(a1, a2)
+			if e > 0:
+				graph.add_edge(a1, a2,
+					entity_weight=e,
+					sentiment_weight=compareSentiment(a1, a2),
+					emotion_weight=compareEmotions(a1, a2))
 
-	# match_weight = sum([t[1] for t in list1 if t[0] in matches])
-	# miss_weight  = sum([t[1] for t in list1 if t[0] in misses ]) + sum([t[1] for t in list2 if t[0] in misses])
+def build_article_graph_from_data(data):
+	articles = []
+	for article in data:
+		articles.append(Article(article, data[article]))
 
-	# per = 1.0*match_weight/(1+match_weight+miss_weight)
+	graph = nx.Graph()
+	addEdges(graph, articles)
 
-	# if per > 0.1:
-	# 	print per, set1, set2
-	# return per
-	return 1
-
-def find_closely_related_nodes(curr_article_name, curr_article_node, article_graph):
-	"""Called by build_article_graph_from_data"""
-	curr_node_sorted_entities = curr_article_node.get_sorted_entity_list()
-	curr_node_sorted_keywords = curr_article_node.get_sorted_keyword_list()
-	for other_article_name, other_article_data_hash in article_graph.nodes(data=True): # go over all other nodes
-		if other_article_name != curr_article_name:
-			other_article_node = other_article_data_hash['node_data']
-			other_sorted_entities = other_article_node.get_sorted_entity_list() # just work with entities rn
-			other_sorted_keywords = other_article_node.get_sorted_keyword_list()
-			entity_relation_score = compare_sorted_lists(curr_node_sorted_entities, other_sorted_entities)
-			keyword_relation_score = compare_sorted_lists(curr_node_sorted_keywords, other_sorted_keywords)
-			if entity_relation_score > 0: # create entity edge if the two nodes are related through entities
-				#print "article[" + curr_article_name + "] compared to article[" + other_article_name + "] relation score:", entity_relation_score
-				if (curr_article_name, other_article_name) not in article_graph.edges():
-					article_graph.add_edge(curr_article_name, other_article_name)
-				article_graph[curr_article_name][other_article_name]['entity_weight'] = entity_relation_score
-			if keyword_relation_score > 0: # create a keyword edge if the two nodes are related through keywords
-				if (curr_article_name, other_article_name) not in article_graph.edges():
-					article_graph.add_edge(curr_article_name, other_article_name)
-				article_graph[curr_article_name][other_article_name]['keyword_weight'] = keyword_relation_score
-
-def build_article_graph_from_data(all_alchemy_data):
-	article_graph = nx.Graph()
-	for curr_article_name, curr_article_data in all_alchemy_data.iteritems(): # build article nodes and put them in the graph
-		curr_article_node = build_article_node(curr_article_name, curr_article_data)
-		article_graph.add_node(re.sub(r'[^A-z0-9]', '', curr_article_name), node_data=curr_article_node)
-		#print "testing node return:", article_graph.node[curr_article_name]
-	for curr_article_name, curr_article_data_hash in article_graph.nodes(data=True): # add edges between article nodes
-		curr_article_node = curr_article_data_hash['node_data']
-		find_closely_related_nodes(curr_article_name, curr_article_node, article_graph)
-	for e in article_graph.edges(data=True):
-		print e[0], e[1],
+	for e in graph.edges(data=True):
+		print e[0].name
+		print e[1].name
 		if 'entity_weight' in e[2]:
-			print 'e', e[2]['entity_weight'],
-		if 'keyword_weight' in e[2]:
-			print 'k', e[2]['keyword_weight'],
+			print 'e', e[2]['entity_weight']
+		if 'sentiment_weight' in e[2]:
+			print 's', e[2]['sentiment_weight']
+		if 'emotion_weight' in e[2]:
+			print 'm', e[2]['emotion_weight']
 		print
-	return article_graph
+	return graph
