@@ -2,6 +2,7 @@ from __future__ import division
 import networkx as nx
 import json
 import operator
+import re
 
 
 class ArticleNode:
@@ -83,7 +84,7 @@ def extract_keyword_data_for_curr_sentence(curr_sentence_data, all_keywords, sen
 		all_keywords[condenced_keyword_name]["all_entries_list"].append(curr_keyword)
 		combine_emotion_for_new_entity(all_keywords, condenced_keyword_name, curr_keyword[u'emotions'])
 
-def build_article_node(curr_article_name, curr_article_data, node_cntr):
+def build_article_node(curr_article_name, curr_article_data):
 	"""Called by build_article_graph_from_data, takes Alchemy data for a single article and builds a node from it"""
 	
 	all_entities = {}
@@ -96,37 +97,27 @@ def build_article_node(curr_article_name, curr_article_data, node_cntr):
 		#	print "curr field:", curr_sent_field
 		sentence_cntr+=1
 	aggregate_emotion_entries_into_final_scores(all_entities)
-	#if node_cntr == 1:
-	#	print "on article:", curr_article_name
-	#	for curr_entity in all_entities:
-	#		print curr_entity
-	return ArticleNode(curr_article_name, curr_article_data, all_entities, all_keywords)
+	return ArticleNode(re.sub(r'[^A-z0-9]', '', curr_article_name), curr_article_data, all_entities, all_keywords)
 
 def compare_sorted_lists(list1, list2):
-	"""Called by find_closely_related_nodes, this is the function to find similarity between articles, should be reviewed."""
-	matches_score = 0
-	mismatches_score = 0
-	num_matches = 0 # currently not used
-	num_mismatches = 0 # currently not used
-	completed_terms = []
-	list1_dict = {curr_tuple[0]: curr_tuple[1] for curr_tuple in list1}
-	list2_dict = {curr_tuple[0]: curr_tuple[1] for curr_tuple in list2}
-	for curr_term_tuple in list1:
-		curr_term = curr_term_tuple[0]
-		curr_term_freq = curr_term_tuple[1]
-		if curr_term in list2_dict: # if the term is present in both lists, add their frequencies to the score
-			matches_score += (list2_dict[curr_term] + curr_term_freq)
-			num_matches+=1
-		else: # otherwise that frequency counts against the match score
-			num_mismatches+=1
-			mismatches_score += curr_term_freq
-		completed_terms.append(curr_term)
-	for curr_term_tuple in list2: ## add all terms from the second list not present in the first to the mismatch score
-		if curr_term_tuple[0] not in completed_terms:
-			num_mismatches+=1
-			mismatches_score+=curr_term_tuple[1]
-	return matches_score/(matches_score+mismatches_score) ## return the percent matches against the overall combined score
+	# for term, freq in list1:
 
+
+	# set1 = set([t[0] for t in list1])
+	# set2 = set([t[0] for t in list2])
+
+	# matches = set1 & set2
+	# misses  = set1 ^ set2
+
+	# match_weight = sum([t[1] for t in list1 if t[0] in matches])
+	# miss_weight  = sum([t[1] for t in list1 if t[0] in misses ]) + sum([t[1] for t in list2 if t[0] in misses])
+
+	# per = 1.0*match_weight/(1+match_weight+miss_weight)
+
+	# if per > 0.1:
+	# 	print per, set1, set2
+	# return per
+	return 1
 
 def find_closely_related_nodes(curr_article_name, curr_article_node, article_graph):
 	"""Called by build_article_graph_from_data"""
@@ -153,9 +144,9 @@ def build_article_graph_from_data(all_alchemy_data):
 	article_graph = nx.Graph()
 	node_cntr = 0
 	for curr_article_name, curr_article_data in all_alchemy_data.iteritems(): # build article nodes and put them in the graph
-		curr_article_node = build_article_node(curr_article_name, curr_article_data, node_cntr)
-		article_graph.add_node(curr_article_name, node_data=curr_article_node)
-		node_cntr +=1
+		curr_article_node = build_article_node(curr_article_name, curr_article_data)
+		article_graph.add_node(re.sub(r'[^A-z0-9]', '', curr_article_name), node_data=curr_article_node)
+		#print "testing node return:", article_graph.node[curr_article_name]
 	for curr_article_name, curr_article_data_hash in article_graph.nodes(data=True): # add edges between article nodes
 		curr_article_node = curr_article_data_hash['node_data']
 		find_closely_related_nodes(curr_article_name, curr_article_node, article_graph)
