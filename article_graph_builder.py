@@ -78,12 +78,13 @@ def build_article_graph_from_data(data):
 	addEdges(graph, articles)
 
 	for e in graph.edges(data=True):
-		print e[0], e[1]
+		print e[0]
+		print e[1]
 		if 'entity_weight' in e[2]:
-			print 'e', e[2]['entity_weight']
+			print 'entity:', e[2]['entity_weight']
 		if 'sentiment_weight' in e[2]:
-			print 's', e[2]['sentiment_weight']
+			print 'sentiment:', e[2]['sentiment_weight']
 		if 'emotion_weight' in e[2]:
-			print 'm', e[2]['emotion_weight']
+			print 'emotion:', e[2]['emotion_weight']
 		print
 	return graph
