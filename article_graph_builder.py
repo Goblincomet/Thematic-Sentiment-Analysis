@@ -3,7 +3,7 @@ import re
 
 class Article:
 	def __init__(self, name, data):
-		self.name = name
+		self.name = re.sub(r'[^A-z0-9 ]', '', name)
 		self.entities = {}
 		self.sentiment = 0
 		self.emotions = {'anger': 0, 'joy': 0, 'fear': 0, 'sadness': 0, 'disgust': 0}
@@ -58,13 +58,14 @@ def compareEmotions(a1, a2):
 
 def addEdges(graph, articles):
 	for i in range(len(articles)):
+		graph.add_node(articles[i])
 		for j in range(i+1, len(articles), 1):
 			a1 = articles[i]
 			a2 = articles[j]
 			e = compareEntities(a1, a2)
 			if e > 0:
-				graph.add_edge(re.sub(r'[^A-z0-9 ]', '', a1.name),
-					re.sub(r'[^A-z0-9 ]', '', a2.name),
+				graph.add_edge(a1,
+					a2,
 					entity_weight=e,
 					sentiment_weight=compareSentiment(a1, a2),
 					emotion_weight=compareEmotions(a1, a2))
@@ -78,8 +79,8 @@ def build_article_graph_from_data(data):
 	addEdges(graph, articles)
 
 	for e in graph.edges(data=True):
-		print e[0]
-		print e[1]
+		print e[0].name
+		print e[1].name
 		if 'entity_weight' in e[2]:
 			print 'entity:', e[2]['entity_weight']
 		if 'sentiment_weight' in e[2]:
