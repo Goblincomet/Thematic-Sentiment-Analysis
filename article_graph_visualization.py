@@ -21,6 +21,11 @@ def export_graph_to_neo4j(article_graph):
 	graph = Graph(password="1happydog")
 	tx = graph.begin()
 	graph_node_dict = {}
+	for n in article_graph.nodes(data=True):
+		if n[0].name not in graph_node_dict:
+			new_graph_node = make_new_graph_node(n[0])
+			graph_node_dict[n[0].name] = new_graph_node
+			tx.create(new_graph_node)
 	for e in article_graph.edges(data=True):
 		if e[0].name not in graph_node_dict:
 			new_graph_node = make_new_graph_node(e[0])
