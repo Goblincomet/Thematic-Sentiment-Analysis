@@ -15,6 +15,38 @@ themes and to convey the sentimental differences between articles. This can be a
 display a side-by-side comparison of two articles presenting opposing viewpoints on a specific
 topic.
 
+## Dependencies ##
+
+* Linux Python package manager, pip.
+* Watson Developer Cloud 
+	* You will need a Watson developer API key and an open AlchemyAPI application in your account to run the app.
+		* Go to http://www.ibm.com/watson/developercloud/ and make an account if you do not have one already.
+		* Create an AlchemyAPI application and use the API key from that when running this app.
+	* For Linux users, run command '$ sudo pip install -- upgrade watson-developer-cloud'
+	* Link to github: https://github.com/watson-developer-cloud/python-sdk
+* networkx, python graph library
+	* For Linux users, run command '$ sudo pip install networkx'
+	* Documentation: https://networkx.readthedocs.io/en/stable/overview.html
+* neo4j, for graph visualization
+	* For Linux users, run the following commands:
+		* '$ wget -O - https://debian.neo4j.org/neotechnology.gpg.key | sudo apt-key add -'
+		* '$ echo 'deb http://debian.neo4j.org/repo stable/' | sudo tee /etc/apt/sources.list.d/neo4j.list'
+		* '$ sudo apt-get update'
+		* '$ sudo apt-get install neo4j'
+	* Documentation: https://neo4j.com/
+* py2neo, for interfacing neo4j with Python
+	* For Linux users, run command: '$ sudo pip install py2neo'
+	* Documentation: http://py2neo.org/v3/index.html
+
+## Usage / How To Make It Go ##
+
+There are two functionalities included in the implementation, one to collect article data from  AlchemyAPI, and one to build the article graph.
+* To collect article data, run command: '$ python main.py [AlchemyAPI key]'
+* To build the article graph, run command '$ python main.py [AlchemyAPI key] [-B/--buildGraph]'
+	* Before running this command, ensure the neo4j database is already running by running command '$ sudo neo4j start' (refer to notes.txt for more details)
+
+If you built the graph using the second command, you can play with it using neo4j by opening the web adress http://localhost:7474/browser/ 
+
 ## Goals ##
 
 We have two major objectives for our project:
