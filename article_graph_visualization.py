@@ -12,7 +12,8 @@ from py2neo import Graph, Node, Relationship
 
 def make_new_graph_node(new_node):
 	entity_list = [unicodedata.normalize('NFKD', e).encode('ascii', 'ignore') for e in new_node.entities]
-	new_graph_node = Node("Article", title = new_node.name, entities=entity_list)
+	taxonomy_list = [unicodedata.normalize('NFKD', e).encode('ascii', 'ignore') for e in new_node.taxonomies]
+	new_graph_node = Node("Article", title = new_node.name, entities=entity_list, taxonomies=taxonomy_list)
 	return new_graph_node
 
 def export_graph_to_neo4j(article_graph):
@@ -29,7 +30,7 @@ def export_graph_to_neo4j(article_graph):
 			graph_node_dict[e[1].name] = new_graph_node
 		g_node1 = graph_node_dict[e[0].name]
 		g_node2 = graph_node_dict[e[1].name]
-		new_edge = Relationship(g_node1, "RELATED TO", g_node2, entity_weight = e[2]['entity_weight'], sentiment_weight = e[2]['sentiment_weight'], emotion_weight = e[2]['emotion_weight'])
+		new_edge = Relationship(g_node1, "RELATED TO", g_node2, entity_weight = e[2]['entity_weight'], taxonomy_weight = e[2]['taxonomy_weight'], sentiment_weight = e[2]['sentiment_weight'], emotion_weight = e[2]['emotion_weight'])
 		tx.create(new_edge)
 	tx.commit()
   	#empty_graph()
