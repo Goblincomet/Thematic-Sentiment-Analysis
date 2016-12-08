@@ -42,7 +42,7 @@ class Article:
 		for m in self.emotions:
 			self.emotions[m] += weight*float(data[m])/n
 
-def compareWords(words1, words2, threshold):
+def compareWords(words1, words2, threshold=0):
 	set1 = set(words1)
 	set2 = set(words2)
 
@@ -57,11 +57,17 @@ def compareWords(words1, words2, threshold):
 		return p
 	return 0
 
-def compareSentiment(a1, a2):
-	return abs(a1.sentiment-a2.sentiment)
+def compareSentiment(a1, a2, threshold=0):
+	p = abs(a1.sentiment-a2.sentiment)
+	if p > threshold:
+		return p
+	return 0
 
-def compareEmotions(a1, a2):
-	return max([abs(a1.emotions[e] - a2.emotions[e]) for e in a1.emotions])
+def compareEmotions(a1, a2, threshold=0):
+	p = max([abs(a1.emotions[e] - a2.emotions[e]) for e in a1.emotions])
+	if p > threshold:
+		return p
+	return 0
 
 def addEdges(graph, articles):
 	for i in range(len(articles)):
@@ -70,14 +76,20 @@ def addEdges(graph, articles):
 			a1 = articles[i]
 			a2 = articles[j]
 			e = compareWords(a1.entities, a2.entities, 0.06)
-			t = compareWords(a1.taxonomies, a2.taxonomies, 0.2)
-			if e > 0:
+			t = compareWords(a1.taxonomies, a2.taxonomies, 0.25)
+			if e > 0 and t > 0:
+				s = compareSentiment(a1, a2)
+				m = compareEmotions(a1, a2)
+				v = "similar"
+				if s > 0.12 and m > 0.12:
+					v = "opposing"
 				graph.add_edge(a1,
 					a2,
+					viewpoint=v,
 					entity_weight=e,
 					taxonomy_weight=t,
-					sentiment_weight=compareSentiment(a1, a2),
-					emotion_weight=compareEmotions(a1, a2))
+					sentiment_weight=s,
+					emotion_weight=m)
 
 def build_article_graph_from_data(data):
 	articles = []
@@ -98,5 +110,7 @@ def build_article_graph_from_data(data):
 			print 'sentiment:', e[2]['sentiment_weight']
 		if 'emotion_weight' in e[2]:
 			print 'emotion:', e[2]['emotion_weight']
+		if 'viewpoint' in e[2]:
+			print 'viewpoint:', e[2]['viewpoint']
 		print
 	return graph
