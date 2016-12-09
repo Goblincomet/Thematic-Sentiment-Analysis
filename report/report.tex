@@ -14,11 +14,11 @@
 To objectively determine the semantic relationship between different selections of text has proven itself to be a difficult problem. Specifically, a computational method for identifying and quantifying the bias between news articles written on the same theme has yet to be implemented. Methods for sentiment and thematic extraction of textual articles have been previously explored. However, these algorithms have not been applied together in a comprehensive application to form any relationship between articles. We propose a novel solution that leverages natural language processing methods including theme extraction and sentiment analysis to graph a set of articles into clusters based on their themes and to convey the sentimental differences between articles.
 
 \section{Introduction}
-There are many existing methods that classify articles based on broad themes and still more methods that determine the sentiment of a particular sentence. Most theme extraction algorithms classify an article into one of a predetermined set of classes, such as politics, sports, or weather. We wish to view more in-depth themes such as the most recent presidential debate or the championship basketball game. Further there exist a few websites that present a set of articles with opposing viewpoints on a particular subject, but these sites use hand-selected data instead of employing natural language processing methods.
+There are many existing methods that classify articles based on broad themes and still more methods that determine the sentiment of a particular sentence. Most theme extraction algorithms classify an article into one of a predetermined set of classes, such as politics, sports, or weather. We wish to identify more in-depth themes such as the most recent presidential debate or the championship basketball game. Further there exist a few websites that present a set of articles with opposing viewpoints on a particular subject, but these sites use hand-selected data instead of employing natural language processing methods.
 
 A group of RCOS students is working on a project (Opinionated) to create a web application to display two news articles with differing viewpoints on a randomly generated theme. This group would like to use a computer algorithm to select which articles to display. There is currently no method to determine the themes of a set of articles then compare a pair of articles based on their sentiments towards one theme.
 
-Our goal this semester was to create an in-depth theme extraction and sentiment analysis approach for the article clustering. This approach was to be exported into a module that can be used by the Opinionated team in their application to generate the relationship between article viewpoints.
+Our goal this semester was to create an in-depth theme extraction and sentiment analysis approach for the article clustering. This approach was to be exported into a module that can be used by the Opinionated team in their application to quantify relationships between article viewpoints.
 
 \section{Approach}
 Our approach focused on two main areas: (1) theme extraction and sentiment analysis and (2) link creation.
@@ -75,14 +75,14 @@ viewpoint: similar
 \end{table}
 
 \section{Discussion}
-We have reached our baseline goal to develop both 
+We have reached our baseline goal to develop both:
 \begin{itemize}
-\item A visual representation of article relationships, in the form of a graph with articles as nodes and edges representing relations between articles
+\item A visual representation of article relationships, in the form of a graph with articles as nodes and edges representing relations between articles.
 \item A file-based representation of the relationships between articles, which can be easily imported and parsed by another program.
 \end{itemize}
 We did not meet our stretch goals to extend our module further. We wished to extract the organizations and people mentioned in an article and determine each entity's viewpoint on the article topics. Thus given a set of articles, we can determine the general viewpoints of any particular organization mentioned across the entire set.
 
-In the future, we will continue to develop our module in order to improve our link quality and incorporate our stretch goals. While these features may not be used by the Opinionated group, we feel they can be utilized in developing more robust comparisons between different organizations as seen by the media. For example, this could be useful in extracting the viewpoints of a political party on the topic of building an oil pipeline, or a similar development. We also wish to develop a more advanced visualization of the article links. For example, links that change the edge width based on the strength of a relationship.
+In the future, we will continue to develop our module in order to improve our link quality and incorporate our stretch goals. While these features may not be used by the Opinionated group, we feel they can be utilized in developing more robust comparisons between different organizations as seen by the media. For example, this could be useful in extracting the viewpoints of a political party on the topic of building an oil pipeline, or a similar development. We also wish to develop a more advanced graph visualization technique to display article link data in the graph itself. One potential feature within this task is to have links that change the edge width based on the strength of a relationship.  Another avenue we wish to pursue in graph visualization is experimenting with the effect of clustering algorithms on the graph to better view larger clusters.  The diffaculty in doing so is aquiring the data to make a graph large enough where this would become relevant. 
 
 \newpage
 \section{Appendix}
