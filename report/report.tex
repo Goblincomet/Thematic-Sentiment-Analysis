@@ -1,5 +1,6 @@
 \documentclass[12pt]{article}
 \usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
 \usepackage{graphicx}
 \usepackage{alltt}
 \begin{document}
@@ -9,7 +10,8 @@
 
 \maketitle
 
-\abstract{To objectively determine the semantic relationship between different selections of text has proven itself to be a difficult problem. Specifically, a computational method for identifying and quantifying the bias between news articles written on the same theme has yet to be implemented. Methods for sentiment and thematic extraction of textual articles have been previously explored. However, these algorithms have not been applied together in a comprehensive application to form any relationship between articles. We propose a novel solution that leverages natural language processing methods including theme extraction and sentiment analysis to graph a set of articles into clusters based on their themes and to convey the sentimental differences between articles. This can be applied to display a side-by-side comparison of two articles presenting opposing viewpoints on a specific theme.}
+\begin{center}\textbf{Abstract}\end{center}
+To objectively determine the semantic relationship between different selections of text has proven itself to be a difficult problem. Specifically, a computational method for identifying and quantifying the bias between news articles written on the same theme has yet to be implemented. Methods for sentiment and thematic extraction of textual articles have been previously explored. However, these algorithms have not been applied together in a comprehensive application to form any relationship between articles. We propose a novel solution that leverages natural language processing methods including theme extraction and sentiment analysis to graph a set of articles into clusters based on their themes and to convey the sentimental differences between articles.
 
 \section{Introduction}
 There are many existing methods that classify articles based on broad themes and still more methods that determine the sentiment of a particular sentence. Most theme extraction algorithms classify an article into one of a predetermined set of classes, such as politics, sports, or weather. We wish to view more in-depth themes such as the most recent presidential debate or the championship basketball game. Further there exist a few websites that present a set of articles with opposing viewpoints on a particular subject, but these sites use hand-selected data instead of employing natural language processing methods.
@@ -21,7 +23,7 @@ Our goal this semester was to create an in-depth theme extraction and sentiment 
 \section{Approach}
 Our approach focused on two main areas: (1) theme extraction and sentiment analysis and (2) link creation.
 
-During the theme extraction step, we began with a set of news articles marked by hand with their themes and sentiments. For each of these articles, we extracted sentence-level analysis data using IBM's Alchemy API. We then aggregated the sentence data into a single dataset for each article using a weighted average. The descriptions of the extracted data can be seen in Table 1.
+During the theme extraction step, we began with a set of news articles marked by hand with their themes and sentiments. For each of these articles, we extracted sentence-level analysis data using IBM's Alchemy API. We then aggregated the sentence data into a single dataset for each article using a weighted average. The descriptions of the extracted data can be seen in \hyperref[table:features]{Table 1}. We have also included a sample of extracted data from a sentence in our dataset in the Appendix.
 
 During aggregation, article sentiment and emotion were found by performing a weighted average of the sentiment and emotion levels extracted for each sentence and for each entity and keyword. Averages were weighted using relevance scores.
 
@@ -36,40 +38,41 @@ When the link creation was complete, we formed a visualization of the article re
 		Feature & Description\\\hline
 		Entities & List of entities extracted using named-entity recognition\\
 		Keywords & List of keywords extracted\\
-		Relevance & Relevance of an entity or keyword in a sentence\\
 		Taxonomy & 5-level categorical theme extraction with a corresponding weight\\
 		Sentiment & Positive, Neutral, or Negative with a corresponding weight\\
-		Emotions & Weights for levels of Anger, Joy, Fear, Sadness, and Disgust\\\hline
+		Emotions & Weights for levels of Anger, Joy, Fear, Sadness, and Disgust\\
+		Relevance & Relevance of an entity, keyword, or taxonomy in a sentence\\\hline
 	\end{tabular}
 	\caption{Description of all features used in article comparison. Note that Sentiments and Emotions were found sentence-level as well as word-level for entities and keywords.}
+	\label{table:features}
 \end{table}
 
-\section{Experiments}
-The majority of the experimentation performed during this project was to determine the weights and thresholds used during aggregation steps. First, we found the proper weighting scheme for aggregating sentiment and emotion by evaluating the $F_1$-score of multiple weights. Out of a combination of baseline, frequency, and relevance weights, we found that relevance gave the best results. Similarly, we evaluated the proper threshold to be used for each of the comparisons: (1) entities and keywords, (2) taxonomy, (3) sentiment, and (4) emotion. For conciseness, we have only included the final results for all thresholds in Table 2.
+\section{Experiments and Results}
+The majority of the experimentation performed during this project was to determine the weights and thresholds used during aggregation steps. First, we found the proper weighting scheme for aggregating sentiment and emotion by evaluating the $F_1$-score of multiple weights. Out of a combination of baseline, frequency, and relevance weights, we found that relevance gave the best results. Similarly, we evaluated the proper threshold to be used for each of the comparisons: (1) entities and keywords, (2) taxonomy, (3) sentiment, and (4) emotion. For conciseness, we have only included the final results for all thresholds in \hyperref[table:thresholds]{Table 2}.
+
+Upon completion of our project, we have both a file format and a visualization of the linked articles. The visualization is a graph representation of the links between articles. Nodes that contain links are clustered together. Nodes and edges can be expanded to display article and relationship information. Views of the article graph and a sample individual article node from the interactive visualization can be found in \hyperref[fig:graph]{Figure 1} and \hyperref[fig:graphNode]{Figure 2} in the appendix. Note that article viewpoints are displayed on the edges.
+
+Our file output contains a list of all linked articles along with their entity, taxonomy, sentiment, and emotion comparison scores and a viewpoint indicator. An example article link is shown below:
+\begin{alltt}
+article 1: GovChristieLeavesGunControlsBehindinNewJersey
+article 2: RepublicanCandidatesDeeplyEntrenchedAgainstGunControls
+entity:    0.0859298046379
+taxonomy:  0.312259510317
+sentiment: 0.167339384365
+emotion:   0.117104697335
+viewpoint: similar
+\end{alltt}
 
 \begin{table}
 	\begin{tabular}{|c|c|c|c|c|}\hline
 		 & Entites/Keywords & Taxonomy & Sentiment & Emotion\\\hline
 		Threshold & 0.06 & 0.25 & 0.12 & 0.12\\\hline
+		Minimum & 0.0 & 0.0 & 0.04 & 0.05\\\hline
+		Maximum & 0.09 & 0.31 & 0.24 & 0.22 \\\hline
 	\end{tabular}
-	\caption{Final threshold values for each comparison during link creation}
+	\caption{Final threshold values for each comparison during link creation and the minimum and maximum observed values. A link is created between articles that meet the entities/keywords and taxonomy comparison thresholds. Articles meeting the sentiment and emotion thresholds are considered to have opposing viewpoints.}
+	\label{table:thresholds}
 \end{table}
-
-\section{Results}
-Upon completion of our project, we have both a file format and a visualization of the linked articles. The visualization is a graph representation of the links between articles. Nodes that contain links are clustered together. Nodes and edges can be expanded to display article and relationship information. Screenshots of the article graph and a sample individual article node from the interactive visualization can be found in the appendix. Note that article viewpoints are displayed on the edges.
-
-Our file output is in JSON format, and contains a list of all linked articles along with their entity, taxonomy, sentiment, and emotion comparison scores and a viewpoint indicator. An example article link is shown below:
-\begin{alltt}
-\{
-  article 1: GovChristieLeavesGunControlsBehindinNewJersey
-  article 2: RepublicanCandidatesDeeplyEntrenchedAgainstGunControls
-  entity:    0.0859298046379
-  taxonomy:  0.312259510317
-  sentiment: 0.167339384365
-  emotion:   0.117104697335
-  viewpoint: similar
-\}
-\end{alltt}
 
 \section{Discussion}
 We have reached our baseline goal to develop both 
@@ -79,10 +82,51 @@ We have reached our baseline goal to develop both
 \end{itemize}
 We did not meet our stretch goals to extend our module further. We wished to extract the organizations and people mentioned in an article and determine each entity's viewpoint on the article topics. Thus given a set of articles, we can determine the general viewpoints of any particular organization mentioned across the entire set.
 
-In the future, we will continue to develop our module in order to incorporate our stretch goals. While these features may not be used by the Opinionated group, we feel they can be utilized in developing more robust comparisons between different organizations as seen by the media. For example, this could be useful in extracting the viewpoints of a political party on the topic of building an oil pipeline, or a similar development. We also wish to develop a more advanced visualization of the article links. For example, links that change the edge width based on the strength of a relationship.
+In the future, we will continue to develop our module in order to improve our link quality and incorporate our stretch goals. While these features may not be used by the Opinionated group, we feel they can be utilized in developing more robust comparisons between different organizations as seen by the media. For example, this could be useful in extracting the viewpoints of a political party on the topic of building an oil pipeline, or a similar development. We also wish to develop a more advanced visualization of the article links. For example, links that change the edge width based on the strength of a relationship.
 
+\newpage
 \section{Appendix}
-\includegraphics[width=5.75in]{graph_screenshot}
+\begin{alltt}
+docSentiment: negative, -0.87
+docEmotions: anger: 0.02, joy: 0.50, fear: 0.04, sadness: 0.44, disgust: 0.03
+entities: [
+  \{ text: 10 percent
+    sentiment: neutral
+    emotions: anger: 0.03, joy: 0.77, fear: 0.07, sadness: 0.15, disgust: 0.02
+    relevance: 0.01 \} ]
+keywords: [
+  \{ text: Chinas main stock
+    sentiment: negative, -0.72
+    emotions: anger: 0.03, joy: 0.77, fear: 0.07, sadness: 0.15, disgust: 0.02
+    relevance: 0.92 \}
+  \{ text: commodity prices
+    sentiment: negative, -0.84
+    emotions: anger: 0.05, joy: 0.14, fear: 0.03, sadness: 0.74, disgust: 0.06
+    relevance: 0.59 \}
+  \{ text: percent
+    sentiment: negative -0.72
+    emotions: anger: 0.03, joy: 0.77, fear: 0.07, sadness: 0.15, disgust: 0.02
+    relevance: 0.32 \} ]
+taxonomy: [
+  \{ label: /finance/investing/stocks
+    relevance: 0.55 \}
+  \{ label: /finance/investing/options
+    relevance: 0.53 \}
+  \{ label: /business and industrial/agriculture and forestry/crops and seed
+    relevance: 0.26 \} ]
+\end{alltt}
+Sample Alchemy API extraction for the sentence ``China's main stock index fell nearly 10 percent for the week, depressing stock and commodity prices elsewhere.''
+
+\begin{figure}[here]
+\includegraphics[width=6.5in]{graph_screenshot}
+\caption{A screenshot of the interactive visualization. Out of 25 test articles, 2 were found to pose opposing viewpoints to the same theme and 3 have similar viewpoints for a theme. Note that the label and weights displayed along the bottom of the image correspond to the highlighted edge.}
+\label{fig:graph}
+\end{figure}
+
+\begin{figure}[here]
 \includegraphics[width=3in]{graph_node_screenshot}
+\caption{A screenshot of node data within the interactive visualization. When a node is clicked, its data can be viewed as a list containing the article title, entities, keywords, taxonomy, sentiment, and emotions.}
+\label{fig:graphNode}
+\end{figure}
 
 \end{document}
